@@ -16,6 +16,7 @@ void Stats::push_v(__m256d vec_x)
 	m1_v = _mm256_add_pd(m1_v, delta_n_v);
 
 	/*
+	std::cout << "n: " << pd_v_str(n_v) << std::endl;
 	std::cout << "vec: " << pd_v_str(delta_v) << std::endl;
 	std::cout << "delta_v " << pd_v_str(delta_v) << std::endl;
 	std::cout << "delta_n_v " << pd_v_str(delta_n_v) << std::endl;
@@ -48,6 +49,27 @@ double Stats::mean_v()
 
 }
 
+uint64_t Stats::n_of_v()
+{
+	double n_temp = 0;
+	__m128d a = _mm256_extractf128_pd(n_v, 0);
+	__m128d b = _mm256_extractf128_pd(n_v, 1);
+
+	double ns[4];
+	double* p = ns;
+	_mm_storel_pd(p, a);
+	_mm_storeh_pd(p + 1, a);
+	_mm_storel_pd(p + 2, b);
+	_mm_storeh_pd(p + 3, b);
+
+	for (int i = 0; i < 4; i++)
+	{
+		n_temp += ns[i];
+	}
+
+	uint64_t n_result = static_cast<uint64_t>(n_temp);
+	return n_result;
+}
 void Stats::push(double x)
 {
 	double delta, delta_n, delta_n2, term1; 

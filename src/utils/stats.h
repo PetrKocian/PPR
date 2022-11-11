@@ -32,4 +32,5 @@ public:
 	double kurtosis() const;
 	bool only_integers() const;
 	double mean_v();
+	uint64_t n_of_v();
 };
