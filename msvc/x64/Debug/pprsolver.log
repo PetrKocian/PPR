@@ -1,0 +1,10 @@
+﻿  main.cpp
+  naive.cpp
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(34): warning C4244: 'initializing': conversion from 'uintmax_t' to 'uint32_t', possible loss of data
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(35): warning C4018: '<': signed/unsigned mismatch
+  stats.cpp
+  timer.cpp
+C:\Users\Petr\Desktop\PPR\src\utils\timer.cpp(22): warning C4244: 'return': conversion from 'const int64_t' to 'int', possible loss of data
+C:\Users\Petr\Desktop\PPR\src\utils\timer.cpp(27): warning C4244: 'return': conversion from 'int64_t' to 'int', possible loss of data
+  Generating Code...
+  pprsolver.vcxproj -> C:\Users\Petr\Desktop\PPR\msvc\..\compiled\pprsolver.exe

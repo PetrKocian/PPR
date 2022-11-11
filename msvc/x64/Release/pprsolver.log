@@ -1,0 +1,19 @@
+﻿  naive.cpp
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(35): warning C4244: 'initializing': conversion from 'uintmax_t' to 'uint32_t', possible loss of data
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(35): warning C4244: 'initializing': conversion from 'uintmax_t' to 'const uint32_t', possible loss of data
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(38): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(41): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(41): warning C4267: 'initializing': conversion from 'size_t' to 'const int', possible loss of data
+  Generating code
+  
+  --- Analyzing function: struct Numbers __cdecl read_and_analyze_file(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >)
+  C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(110) : info C5002: loop not vectorized due to reason '501'
+  C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(69) : info C5002: loop not vectorized due to reason '1200'
+  C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(45) : info C5002: loop not vectorized due to reason '1106'
+  C:\Users\Petr\Desktop\PPR\src\naive\naive.cpp(38) : info C5002: loop not vectorized due to reason '1106'
+  C:\Users\Petr\Desktop\PPR\src\utils\stats.cpp(41) : info C5002: loop not vectorized due to reason '1303'
+  2 of 499 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  pprsolver.vcxproj -> C:\Users\Petr\Desktop\PPR\msvc\..\compiled\pprsolver.exe
