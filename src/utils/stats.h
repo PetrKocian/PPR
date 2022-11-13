@@ -4,6 +4,16 @@
 #include <immintrin.h>
 
 
+struct Stats_partial
+{
+public:
+	double m1 = 0;
+	double m2 = 0;
+	double m3 = 0;
+	double m4 = 0;
+	double n = 0;
+};
+
 class Stats
 {
 private:
@@ -23,6 +33,8 @@ private:
 	__m256d term1_v = _mm256_setzero_pd();
 	__m256d term1_temp_v = _mm256_setzero_pd();
 
+	Stats_partial combine_m4(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b);
+
 
 public:
 	void clear();
@@ -33,4 +45,10 @@ public:
 	bool only_integers() const;
 	double mean_v();
 	uint64_t n_of_v();
+	double kurtosis_v();
+	double variance_v();
+	double skewness_v();
+	double kurtosis_complete();
 };
+
+

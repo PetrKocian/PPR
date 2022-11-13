@@ -9,7 +9,7 @@
 #include "../utils/stats.h"
 #include "../utils/timer.h"
 
-#define NUMBER_OF_DOUBLES 40
+#define NUMBER_OF_DOUBLES 100
 
 Numbers read_and_analyze_file_v(std::string filename)
 {
@@ -35,15 +35,17 @@ Numbers read_and_analyze_file_v(std::string filename)
 
 
 	t.start();
-	const uint32_t filesize = std::filesystem::file_size(filename);
+	const uintmax_t filesize = std::filesystem::file_size(filename);
 
 
 	for (int i = 0; i < filesize / buffer_size; i++)
 	{
 		input_file.read(buffer.data(), buffer_size);
-		const int end = input_file.gcount() / sizeof(double);
+		const size_t end = input_file.gcount() / sizeof(double);
 
 		const double* double_values = (double*)buffer.data();
+
+		//try vectorize fpclassify
 
 		for (int i = 0; i < end; i += 4)
 		{
@@ -65,13 +67,18 @@ Numbers read_and_analyze_file_v(std::string filename)
 			}*/
 		}
 	}
+	input_file.read(buffer.data(), buffer_size);
+
 	if (input_file.gcount() == 0)
 	{
 		;
+		std::cout << "GOOD" << std::endl;
 	}
 	else
 	{
-		input_file.read(buffer.data(), buffer_size);
+		std::cout << "NOT GOOD" << std::endl;
+
+		//input_file.read(buffer.data(), buffer_size);
 
 		double* double_values = (double*)buffer.data();
 
@@ -82,7 +89,7 @@ Numbers read_and_analyze_file_v(std::string filename)
 			auto double_class = std::fpclassify(number);
 			if (double_class == FP_NORMAL || FP_ZERO)
 			{
-				stats_non_v.push(number);
+				stats.push(number);
 
 				result.doubles.push_back(number);
 				result.valid_doubles++;
@@ -94,12 +101,12 @@ Numbers read_and_analyze_file_v(std::string filename)
 		}
 
 		//TODO: make nicer
-		combined_mean = (stats_non_v.mean() * result.valid_doubles + stats.mean_v() * stats.n_of_v()) / (stats.n_of_v() + result.valid_doubles);
+		//combined_mean = (stats_non_v.mean() * result.valid_doubles + stats.mean_v() * stats.n_of_v()) / (stats.n_of_v() + result.valid_doubles);
 	}
 
 	t.end();
 
-	std::cout << "stats mean " << combined_mean << " kurtosis " << stats.kurtosis() << " only ints " << stats.only_integers()
+	std::cout << "stats mean " << stats.mean_v() << " kurtosis " << stats.kurtosis_v() << " only ints " << stats.only_integers()
 		<< " time: " << t.get_time() << " us time " << t.get_time_ms() <<std::endl;
 	t.clear();
 	return result;
@@ -142,7 +149,7 @@ Numbers read_and_analyze_file_naive(std::string filename)
 		double* double_values = (double*)buffer.data();
 
 		//check if doubles are normal/zero and add them to result structure
-		for (int i = 0; i < input_file.gcount() / sizeof(double); i++)
+		for (int i = 0; i < input_file.gcount() / sizeof(double); i ++)
 		{
 			double number = double_values[i];
 			auto double_class = std::fpclassify(number);
