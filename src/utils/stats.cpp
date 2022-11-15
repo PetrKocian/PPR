@@ -90,8 +90,6 @@ double Stats::kurtosis_v()
 
 	Stats_partial result = combine_m4(a.n, b.n, a.m4, b.m4, a.m3, b.m3, a.m2, b.m2, a.m1, b.m1);
 
-	//std::cout << std::endl << "KURTOSIS1 " << (m4_p[0] * n_p[0]) / (m2_p[0] * m2_p[0]) - 3 << std::endl;
-
 	return (result.m4 * result.n) / (result.m2 * result.m2) - 3;
 
 
@@ -236,7 +234,6 @@ double Stats::mean() const
 
 double Stats::kurtosis() const
 {
-	//std::cout<< std::endl << "KURT classic m4 " << m4 << " m2 " << m2 << " n "<< n << " m3 "<< m3 <<std::endl; 
 	return static_cast<double>(n)* m4 / (m2 * m2) - 3.0;
 }
 
