@@ -47,14 +47,16 @@ void read_and_analyze_file_tbb(std::string filename)
 			for (int i = 0; i < end; i += 4)
 			{
 				__m256d vec = _mm256_load_pd(double_values + i);
+				/*
 				std::cout << "number_v1 " << *(double_values+i )<< std::endl;
 				std::cout << "number_v2 " << *(double_values + i+1) << std::endl;
 				std::cout << "number_v3 " << *(double_values + i+2 )<< std::endl;
 				std::cout << "number_v4 " << *(double_values + i +3)<< std::endl;
-
+				*/
 				stats.push_v(vec);
 			}
 			std::cout << "Kurt_v " << stats.kurtosis_v() << std::endl;
+			stats.finalize_stats();
 			return stats;
 		}
 		else
@@ -63,20 +65,26 @@ void read_and_analyze_file_tbb(std::string filename)
 			for (int i = 0; i < end; i++)
 			{
 				double number = double_values[i];
-				std::cout << "number " << number << std::endl;
+				//std::cout << "number " << number << std::endl;
 				stats.push(number);
 			}
 			std::cout << "Kurt " << stats.kurtosis() << std::endl;
 
+			stats.finalize_stats();
 			return stats;
 		}
 		});
 	tbb::flow::function_node<Stats, Stats> combine_node(g, 1, [&](Stats stats) {
-		return stats;
+		final_stats.add_stats(stats);
+		return final_stats;
 		});
 	tbb::flow::make_edge(input_node, push_node);
+	tbb::flow::make_edge(push_node, combine_node);
+
 	input_node.activate();
 	g.wait_for_all();
+	final_stats.finalize_stats();
+	std::cout << "final stats k " << final_stats.kurtosis() << std::endl;
 
 }
 

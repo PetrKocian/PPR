@@ -140,6 +140,11 @@ bool Stats::only_integers() const
 
 void Stats::finalize_stats()
 {
+	if (n_of_v() == 0)
+	{
+		return;
+	}
+
 	//access AVX2 vectors
 	double* n_p = (double*)& n_v;
 	double* m1_p = (double*)& m1_v;
