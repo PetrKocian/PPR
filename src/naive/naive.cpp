@@ -4,15 +4,79 @@
 #include <array>
 #include <filesystem>
 #include <immintrin.h>
-
+#include <oneapi/tbb/flow_graph.h>
 #include "naive.h"
 #include "../utils/stats.h"
 #include "../utils/timer.h"
 
 #define NUMBER_OF_DOUBLES 100
+static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 
 void read_and_analyze_file_tbb(std::string filename)
 {
+	tbb::flow::graph g;
+	std::vector<char> buffer(buffer_size);
+	Stats final_stats;
+
+	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
+	if (!input_file)
+	{
+		std::wcout << "File failed to open" << std::endl;
+	}
+	tbb::flow::input_node<std::vector<char>> input_node(g, [&](tbb::flow_control & fc) {
+
+		input_file.read(buffer.data(), buffer_size);
+
+		if(input_file.gcount() == 0)
+		{
+			std::cout << "INPUT NODE END" << std::endl;
+			fc.stop();
+			return std::vector<char>();
+		}
+		return std::vector<char>(buffer.begin(), buffer.begin() + input_file.gcount());
+
+		});
+	tbb::flow::function_node<std::vector<char>,Stats> push_node(g, tbb::flow::unlimited, [&](std::vector<char> data) {
+
+		Stats stats;
+		const double* double_values = (double*)data.data();
+
+		if (data.size() == buffer_size)
+		{
+			const size_t end = data.size() / sizeof(double);
+			for (int i = 0; i < end; i += 4)
+			{
+				__m256d vec = _mm256_load_pd(double_values + i);
+				std::cout << "number_v1 " << *(double_values+i )<< std::endl;
+				std::cout << "number_v2 " << *(double_values + i+1) << std::endl;
+				std::cout << "number_v3 " << *(double_values + i+2 )<< std::endl;
+				std::cout << "number_v4 " << *(double_values + i +3)<< std::endl;
+
+				stats.push_v(vec);
+			}
+			std::cout << "Kurt_v " << stats.kurtosis_v() << std::endl;
+			return stats;
+		}
+		else
+		{
+			const size_t end = data.size() / sizeof(double);
+			for (int i = 0; i < end; i++)
+			{
+				double number = double_values[i];
+				std::cout << "number " << number << std::endl;
+				stats.push(number);
+			}
+			std::cout << "Kurt " << stats.kurtosis() << std::endl;
+
+			return stats;
+		}
+		});
+	tbb::flow::function_node<Stats, Stats> combine_node(g, 1, [&](Stats stats) {
+		return stats;
+		});
+	tbb::flow::make_edge(input_node, push_node);
+	input_node.activate();
+	g.wait_for_all();
 
 }
 
@@ -29,8 +93,6 @@ Numbers read_and_analyze_file_v(std::string filename)
 
 	Stats stats;
 	Stats stats_non_v;
-	stats_non_v.clear();
-	stats.clear();
 	t.clear();
 
 	//check if file opened
@@ -111,7 +173,7 @@ Numbers read_and_analyze_file_v(std::string filename)
 
 	t.end();
 
-	std::cout << "stats mean " << stats.mean_v() << " " << combined_mean << " kurtosis " << stats.kurtosis_complete() << " only ints "<< only_int<< " " << stats.only_integers()
+	std::cout << "stats mean " << stats.mean_v() << " " << combined_mean << " n " << stats.get_n()<<" kurtosis " << stats.kurtosis_complete() << " only ints "<< only_int<< " " << stats.only_integers()
 		<< " time: " << t.get_time() << " us time " << t.get_time_ms() << std::endl;
 	t.clear();
 	return result;
@@ -127,7 +189,6 @@ Numbers read_and_analyze_file_naive(std::string filename)
 	std::vector<char> buffer(buffer_size);
 
 	Stats stats;
-	stats.clear();
 	t.clear();
 
 	//check if file opened
@@ -175,7 +236,7 @@ Numbers read_and_analyze_file_naive(std::string filename)
 	}
 	t.end();
 
-	std::cout << "stats mean " << stats.mean() << " kurtosis " << stats.kurtosis() << " only ints " << stats.only_integers()
+	std::cout << "stats mean " << stats.mean() <<  " n " << stats.get_n() <<" kurtosis " << stats.kurtosis() << " only ints " << stats.only_integers()
 		<< " time: " << t.get_time() << " us time " << t.get_time_ms() << std::endl;
 	t.clear();
 	return result;

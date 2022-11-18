@@ -10,8 +10,9 @@ int wmain(int argc, wchar_t** argv) {
 
 	//read name of file
 	std::getline(std::cin, line);
+	read_and_analyze_file_tbb("../../ppr_data/" + line);
 
-	test = read_and_analyze_file_v("../../ppr_data/"+line);
+	//test = read_and_analyze_file_v("../../ppr_data/"+line);
 
 	test2 = read_and_analyze_file_naive("../../ppr_data/" + line);
 

@@ -10,5 +10,7 @@ public:
 	std::vector<double> doubles;
 };
 
+void read_and_analyze_file_tbb(std::string filename);
+
 Numbers read_and_analyze_file_v(std::string filename);
 Numbers read_and_analyze_file_naive(std::string filename);
