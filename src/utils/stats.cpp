@@ -23,7 +23,7 @@ Stats_partial Stats::combine_stats(double count_a, double count_b, double m4_a, 
 
 	double m2_combined = m2_a + m2_b + delta_f * delta_n_f * count_a * count_b;
 
-	double m3_combined = m3_a + m3_b + delta_f * delta_n_f * count_a * count_b * (count_a - count_b) +
+	double m3_combined = m3_a + m3_b + delta_f * delta_n2_f * count_a * count_b * (count_a - count_b) +
 		3 * delta_n_f * (count_a * m2_b - count_b * m2_a);
 
 	result.n = n_combined;

@@ -7,29 +7,35 @@
 #include <oneapi/tbb/flow_graph.h>
 #include "naive.h"
 #include "../utils/stats.h"
-#include "../utils/timer.h"
+#include "../utils/my_timer.h"
 
 #define NUMBER_OF_DOUBLES 100
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 
 void read_and_analyze_file_tbb(std::string filename)
 {
+	t.clear();
+	t.start();
 	tbb::flow::graph g;
 	std::vector<char> buffer(buffer_size);
 	Stats final_stats;
+
+
+
 
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	if (!input_file)
 	{
 		std::wcout << "File failed to open" << std::endl;
 	}
+
 	tbb::flow::input_node<std::vector<char>> input_node(g, [&](tbb::flow_control & fc) {
 
 		input_file.read(buffer.data(), buffer_size);
 
 		if(input_file.gcount() == 0)
 		{
-			std::cout << "INPUT NODE END" << std::endl;
+			//std::cout << "INPUT NODE END" << std::endl;
 			fc.stop();
 			return std::vector<char>();
 		}
@@ -55,7 +61,7 @@ void read_and_analyze_file_tbb(std::string filename)
 				*/
 				stats.push_v(vec);
 			}
-			std::cout << "Kurt_v " << stats.kurtosis_v() << std::endl;
+			//std::cout << "Kurt_v " << stats.kurtosis_v() << std::endl;
 			stats.finalize_stats();
 			return stats;
 		}
@@ -68,7 +74,7 @@ void read_and_analyze_file_tbb(std::string filename)
 				//std::cout << "number " << number << std::endl;
 				stats.push(number);
 			}
-			std::cout << "Kurt " << stats.kurtosis() << std::endl;
+			//std::cout << "Kurt " << stats.kurtosis() << std::endl;
 
 			stats.finalize_stats();
 			return stats;
@@ -84,12 +90,17 @@ void read_and_analyze_file_tbb(std::string filename)
 	input_node.activate();
 	g.wait_for_all();
 	final_stats.finalize_stats();
-	std::cout << "final stats k " << final_stats.kurtosis() << std::endl;
 
+	t.end();
+
+	std::cout << "final stats k " << final_stats.kurtosis() << " mean " << final_stats.mean() << " n " <<final_stats.get_n()<<" time: " << t.get_time() << "us time: " << t.get_time_ms() << "ms" << std::endl;
 }
 
 Numbers read_and_analyze_file_v(std::string filename)
 {
+	t.clear();
+	t.start();
+
 	Numbers result;
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
@@ -101,7 +112,6 @@ Numbers read_and_analyze_file_v(std::string filename)
 
 	Stats stats;
 	Stats stats_non_v;
-	t.clear();
 
 	//check if file opened
 	if (!input_file)
@@ -111,7 +121,6 @@ Numbers read_and_analyze_file_v(std::string filename)
 	}
 
 
-	t.start();
 	const uintmax_t filesize = std::filesystem::file_size(filename);
 
 	for (int i = 0; i < filesize / buffer_size; i++)
@@ -179,10 +188,12 @@ Numbers read_and_analyze_file_v(std::string filename)
 		combined_mean = (stats.mean() * result.valid_doubles + stats.mean_v() * stats.n_of_v()) / (stats.n_of_v() + result.valid_doubles);
 	}
 
+	stats.finalize_stats();
+
 	t.end();
 
-	std::cout << "stats mean " << stats.mean_v() << " " << combined_mean << " n " << stats.get_n()<<" kurtosis " << stats.kurtosis_complete() << " only ints "<< only_int<< " " << stats.only_integers()
-		<< " time: " << t.get_time() << " us time " << t.get_time_ms() << std::endl;
+	std::cout << "stats mean " << stats.mean_v() << " " << combined_mean << " n " << stats.get_n()<<" kurtosis " << stats.kurtosis() << " only ints "<< only_int<< " " << stats.only_integers()
+		<< " time: " << t.get_time() << "us time " << t.get_time_ms() << "ms" << std::endl;
 	t.clear();
 	return result;
 }
@@ -190,6 +201,9 @@ Numbers read_and_analyze_file_v(std::string filename)
 
 Numbers read_and_analyze_file_naive(std::string filename)
 {
+	t.clear();
+	t.start();
+
 	Numbers result;
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
@@ -197,7 +211,6 @@ Numbers read_and_analyze_file_naive(std::string filename)
 	std::vector<char> buffer(buffer_size);
 
 	Stats stats;
-	t.clear();
 
 	//check if file opened
 	if (!input_file)
@@ -207,7 +220,6 @@ Numbers read_and_analyze_file_naive(std::string filename)
 	}
 
 
-	t.start();
 
 	while (!eof)
 	{
@@ -242,10 +254,11 @@ Numbers read_and_analyze_file_naive(std::string filename)
 
 
 	}
+
 	t.end();
 
 	std::cout << "stats mean " << stats.mean() <<  " n " << stats.get_n() <<" kurtosis " << stats.kurtosis() << " only ints " << stats.only_integers()
-		<< " time: " << t.get_time() << " us time " << t.get_time_ms() << std::endl;
+		<< " time: " << t.get_time() << "us time " << t.get_time_ms() << "ms" << std::endl;
 	t.clear();
 	return result;
 }

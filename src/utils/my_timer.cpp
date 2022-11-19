@@ -1,4 +1,4 @@
-#include "timer.h"
+#include "my_timer.h"
 
 void Timer::clear()
 {
