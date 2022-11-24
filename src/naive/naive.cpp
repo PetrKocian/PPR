@@ -8,20 +8,28 @@
 #include "naive.h"
 #include "../utils/stats.h"
 #include "../utils/my_timer.h"
+#include "../opencl/vadd.h"
 
 #define NUMBER_OF_DOUBLES 100
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 
+void test(std::string filename)
+{
+	std::vector<char> buffer(buffer_size);
+	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
+	input_file.read(buffer.data(), buffer_size);
+	test_vadd(buffer);
+	
+}
+
 void read_and_analyze_file_tbb(std::string filename)
 {
+	test(filename);
 	t.clear();
 	t.start();
 	tbb::flow::graph g;
 	std::vector<char> buffer(buffer_size);
 	Stats final_stats;
-
-
-
 
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	if (!input_file)
@@ -101,6 +109,8 @@ Numbers read_and_analyze_file_v(std::string filename)
 	t.clear();
 	t.start();
 
+	test(filename);
+
 	Numbers result;
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
@@ -145,6 +155,7 @@ Numbers read_and_analyze_file_v(std::string filename)
 				}
 			}
 
+			//TODO: throw away invalid number
 			if (doubles_valid == false)
 			{
 				for (int j = 0; j < 4; j++)

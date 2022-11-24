@@ -114,12 +114,12 @@ void Stats::push(double x)
 	m3 += term1 * delta_n * (n - 2) - 3 * delta_n * m2;
 	m2 += term1;
 
-	/*
+	
 	std::cout << "m1 " << m1 << std::endl;
 	std::cout << "m2 " << m2 << std::endl;
 	std::cout << "m3 " << m3 << std::endl;
 	std::cout << "m4 " << m4 << std::endl;
-	*/
+	
 
 }
 
