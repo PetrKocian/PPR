@@ -39,9 +39,6 @@ private:
 	__m256d term1_v = _mm256_setzero_pd();
 	__m256d term1_temp_v = _mm256_setzero_pd();
 
-	//combine a pair of stats
-	Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b);
-
 
 public:
 	//set all values to 0
@@ -70,3 +67,5 @@ public:
 };
 
 
+//combine a pair of stats
+Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b);

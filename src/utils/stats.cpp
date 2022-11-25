@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-Stats_partial Stats::combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b)
+Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b)
 {
 	Stats_partial result;
 
@@ -114,12 +114,12 @@ void Stats::push(double x)
 	m3 += term1 * delta_n * (n - 2) - 3 * delta_n * m2;
 	m2 += term1;
 
-	
+	/*
 	std::cout << "m1 " << m1 << std::endl;
 	std::cout << "m2 " << m2 << std::endl;
 	std::cout << "m3 " << m3 << std::endl;
 	std::cout << "m4 " << m4 << std::endl;
-	
+	*/
 
 }
 

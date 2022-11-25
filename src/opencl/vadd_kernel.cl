@@ -21,18 +21,20 @@ __kernel void compute_stats(__global const double* numbers, __global double* res
 	size_t n = 0;
 	size_t id = get_global_id(0);
 
+	printf("CL id %d", id);
+
 	for (size_t i = 0; i < 100; i += 1) {
-		push_cl(m, &n, numbers[id + i]);
+		push_cl(m, &n, numbers[id*100 + i]);
 	}
 
-	result[0] = n;
-	result[1] = m[0];
-	result[2] = m[1];
-	result[3] = m[2];
-	result[4] = (m[3]*n)/(m[1]*m[1]) - 3;
+	result[5*id] = n;
+	result[5 * id+1] = m[0];
+	result[5 * id+2] = m[1];
+	result[5 * id+3] = m[2];
+	result[5 * id+4] = m[3];
 }
 
-
+/*
 
 inline double add(double a, double b)
 {
@@ -48,3 +50,4 @@ __kernel void simple_add(
 	int gid = get_global_id(0);
 	c[gid] = add(a[gid], b[gid]);
 }
+*/

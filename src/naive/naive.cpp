@@ -10,7 +10,7 @@
 #include "../utils/my_timer.h"
 #include "../opencl/vadd.h"
 
-#define NUMBER_OF_DOUBLES 100
+#define NUMBER_OF_DOUBLES 10000
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 
 void test(std::string filename)
@@ -18,13 +18,13 @@ void test(std::string filename)
 	std::vector<char> buffer(buffer_size);
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	input_file.read(buffer.data(), buffer_size);
-	test_vadd(buffer);
+	//test_vadd(buffer);
 	
 }
 
 void read_and_analyze_file_tbb(std::string filename)
 {
-	test(filename);
+	//test(filename);
 	t.clear();
 	t.start();
 	tbb::flow::graph g;

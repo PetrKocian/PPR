@@ -19,6 +19,8 @@ int wmain(int argc, wchar_t** argv) {
 
 	//test2 = read_and_analyze_file_naive("../../ppr_data/" + line);
 
+	test_vadd("../../ppr_data/" + line);
+
 
 	/*Watchdog dog(std::chrono::milliseconds(5000));
 	dog.start();

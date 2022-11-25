@@ -1,4 +1,4 @@
 #include <string>
 #pragma once
 
-void test_vadd(std::vector<char> buffer);
+void test_vadd(std::string filename);
