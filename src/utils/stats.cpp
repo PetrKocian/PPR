@@ -3,6 +3,17 @@
 #include <cmath>
 #include <iostream>
 
+
+void Stats::set_stats(Stats_partial sp)
+{
+	this->m1 = sp.m1;
+	this->m2 = sp.m2;
+	this->m3 = sp.m3;
+	this->m4 = sp.m4;
+	this->n = sp.n;
+
+}
+
 Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b)
 {
 	Stats_partial result;

@@ -7,7 +7,7 @@
 #include "../utils/stats.h"
 #include <filesystem>
 
-#define SIZE_OF_BUFFER sizeof(double)*200
+#define SIZE_OF_BUFFER sizeof(double)*10000
 
 void Load_Code(std::string file, std::string& cl_code) {
 	std::ifstream fileStream(file);
@@ -59,7 +59,7 @@ void test_vadd(std::string filename)
 
 	cl::Program::Sources sources;
 
-	std::array<double,100> result_arr;
+	std::array<double,500> result_arr;
 
 	sources.push_back({ cl_code.c_str(), cl_code.length() });
 
@@ -75,7 +75,7 @@ void test_vadd(std::string filename)
 	cl::CommandQueue queue(context, default_device);
 
 	cl::Buffer buffer_doubles = cl::Buffer(context, CL_MEM_READ_WRITE, SIZE_OF_BUFFER);
-	cl::Buffer buffer_result = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double)*100);
+	cl::Buffer buffer_result = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double)*500);
 
 	queue.enqueueWriteBuffer(buffer_doubles, CL_TRUE, 0, SIZE_OF_BUFFER, buffer.data());
 
@@ -84,12 +84,12 @@ void test_vadd(std::string filename)
 	kurt.setArg(0, buffer_doubles);
 	kurt.setArg(1, buffer_result);
 
-	cl_int result = queue.enqueueNDRangeKernel(kurt, cl::NullRange, cl::NDRange(2), cl::NullRange);
+	cl_int result = queue.enqueueNDRangeKernel(kurt, cl::NullRange, cl::NDRange(100), cl::NullRange);
 
 	if (result != CL_SUCCESS)
 		std::cout << "ERROR" << result << std::endl;
 
-	queue.enqueueReadBuffer(buffer_result, CL_TRUE, 0, sizeof(double) * 100, result_arr.data());
+	queue.enqueueReadBuffer(buffer_result, CL_TRUE, 0, sizeof(double) * 500, result_arr.data());
 
 	queue.finish();
 
@@ -101,9 +101,38 @@ void test_vadd(std::string filename)
 	Stats_partial sp = combine_stats(result_arr[0], result_arr[5], result_arr[4], result_arr[9],
 		result_arr[3], result_arr[8], result_arr[2], result_arr[7], result_arr[1], result_arr[6]);
 
-	std::cout << "KURT " << (sp.m4 * sp.n) / (sp.m2 * sp.m2) - 3 << std::endl;
-	std::cout << "count " << sp.n << std::endl;
-	std::cout << " mean " << sp.m1 << std::endl;
+	Stats s;
+	s.set_stats(sp);
+
+	std::cout << "KURT " << s.kurtosis() << std::endl;
+	std::cout << "count " << s.get_n() << std::endl;
+	std::cout << " mean " << s.mean() << std::endl;
+
+	sp.n = result_arr[0];
+	sp.m1 = result_arr[1];
+	sp.m2 = result_arr[2];
+	sp.m3 = result_arr[3];
+	sp.m4 = result_arr[4];
+	s.set_stats(sp);
+
+	Stats s_toadd;
+
+	for (int i = 5; i < 500; i += 5)
+	{
+		sp.n = result_arr[i];
+		sp.m1 = result_arr[i+1];
+		sp.m2 = result_arr[i+2];
+		sp.m3 = result_arr[i+3];
+		sp.m4 = result_arr[i+4];
+		s_toadd.set_stats(sp);
+		s.add_stats(s_toadd);
+	}
+
+	std::cout << "KURT100 " << s.kurtosis() << std::endl;
+	std::cout << "count100 " << s.get_n() << std::endl;
+	std::cout << "mean100 " << s.mean() << std::endl;
 
 	std::cout << "Complete" << std::endl;
 }
+
+

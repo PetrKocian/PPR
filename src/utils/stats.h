@@ -41,6 +41,7 @@ private:
 
 
 public:
+	void set_stats(Stats_partial sp);
 	//set all values to 0
 	void clear();
 	//push 4 doubles in as a AVX2 vector
