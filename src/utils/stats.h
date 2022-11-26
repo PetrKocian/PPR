@@ -55,6 +55,7 @@ public:
 	//combine AVX2 vector and double values to finalize stats
 	void finalize_stats();
 	//adds stats to this stats
+	void add_stats(Stats_partial stats_to_add);
 	void add_stats(Stats stats_to_add);
 
 	//TODO: debug

@@ -8,7 +8,7 @@
 #include "naive.h"
 #include "../utils/stats.h"
 #include "../utils/my_timer.h"
-#include "../opencl/vadd.h"
+#include "../opencl/opencl_processing.h"
 
 #define NUMBER_OF_DOUBLES 10000
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;

@@ -199,6 +199,23 @@ void Stats::add_stats(Stats stats_to_add)
 	this->n = result.n;
 }
 
+void Stats::add_stats(Stats_partial stats_to_add)
+{
+	Stats_partial result = combine_stats(n, stats_to_add.n, m4, stats_to_add.m4, m3, stats_to_add.m3, m2, stats_to_add.m2, m1, stats_to_add.m1);
+
+	this->m1 = result.m1;
+	this->m2 = result.m2;
+	this->m3 = result.m3;
+	this->m4 = result.m4;
+	this->n = result.n;
+
+	/**/
+	std::cout << "m1 " << m1 << std::endl;
+	std::cout << "m2 " << m2 << std::endl;
+	std::cout << "m3 " << m3 << std::endl;
+	std::cout << "m4 " << m4 << std::endl;
+}
+
 //DEBUG PART
 
 double Stats::mean_v()
