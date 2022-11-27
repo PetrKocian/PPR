@@ -77,11 +77,11 @@ Stats compute_stats_opencl(Device_opencl_struct& dev, std::vector<char> buffer)
 		sp.m4 = result_arr[i + 4];
 		s.add_stats(sp);
 	}
-
+	
 	std::cout << "KURT_inside " << s.kurtosis() << std::endl;
 	std::cout << "count100 " << s.get_n() << std::endl;
 	std::cout << "mean100 " << s.mean() << std::endl;
-
+	
 	return s;
 }
 

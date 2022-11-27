@@ -12,8 +12,6 @@ std::mutex cl_buffer_mutex;
 void read_file(std::string filename, std::vector<std::vector<char>> &opencl_v, std::vector<std::vector<char>> &cpu_v, std::atomic<bool> &finished)
 {
 
-	std::cout << "STRT FR " << std::endl;
-
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
 	size_t buffer_size_cl = sizeof(double) * NUMBER_OF_DOUBLES_CL;
@@ -33,7 +31,8 @@ void read_file(std::string filename, std::vector<std::vector<char>> &opencl_v, s
 	while (!eof)
 	{
 
-		std::cout << "CL: " << opencl_v.size() << "| CPU: " << cpu_v.size() << std::endl;
+		//std::cout << "CL: " << opencl_v.size() << "| CPU: " << cpu_v.size() << std::endl;
+		
 		if (opencl_v.size() > cpu_v.size())
 		{
 			input_file.read(buffer_cpu.data(), buffer_size_cpu);

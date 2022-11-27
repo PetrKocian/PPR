@@ -26,7 +26,9 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 	prepare_opencl_device(default_device, dev);
 	std::vector<char> buffer;
 	Stats s;
-	do
+	bool get_data = true;
+
+	while(get_data)
 	{
 		cl_buffer_mutex.lock();
 
@@ -35,16 +37,21 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 			buffer = cl_buffer.back();
 			cl_buffer.pop_back();
 			cl_buffer_mutex.unlock();
+
 			s = compute_stats_opencl(dev, buffer);
 			result.add_stats(s);
-			std::cout << "KURTOSIS opencl " << result.kurtosis() << std::endl;
+			//std::cout << "KURTOSIS opencl " << result.kurtosis() << std::endl;
 
 		}
 		else
 		{
+			if (cl_buffer.empty() && finished)
+			{
+				get_data = false;
+			}
 			cl_buffer_mutex.unlock();
 		}
-	} while (!finished);
+	}
 
 
 }
@@ -52,10 +59,11 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std::atomic<bool> &finished)
 {
 	std::vector<char> buffer;
-	std::cout << "STRT " << std::endl;
+	//std::cout << "STRT " << std::endl;
+	bool get_data = true;
 
 	//Stats result;
-	do
+	while(get_data)
 	{
 		cpu_buffer_mutex.lock();
 		if (!cpu_buffer.empty())
@@ -67,23 +75,22 @@ void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std:
 			double* double_values = (double*)buffer.data();
 
 
-			/*for (int i = 0; i < 100; i++)
-			{
-				std::cout << double_values[i] << " " << i << std::endl;
-			}*/
-
 			Stats s = compute_stats_naive(buffer);
 
 			result.add_stats(s);
-			std::cout << "KURTOSIS cpu " << result.kurtosis() << std::endl;
+			//std::cout << "KURTOSIS cpu " << result.kurtosis() << std::endl;
 
 		}
 		else
 		{
+			if (cpu_buffer.empty()&&finished)
+			{
+				get_data = false;
+			}
 			cpu_buffer_mutex.unlock();
 		}
 
-	} while (!finished);
+	}
 
 
 }
@@ -114,7 +121,7 @@ int wmain(int argc, wchar_t** argv) {
 	std::thread t2(cl_wrapper, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished));
 
 	std::thread reader(read_file, "../../ppr_data/" + line, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished));
-	std::cout << "STRT FR1 " << std::endl;
+	//std::cout << "STRT FR1 " << std::endl;
 
 	t1.join();
 	t2.join();
@@ -129,7 +136,8 @@ int wmain(int argc, wchar_t** argv) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 	*/
 	result_cpu.add_stats(result_cl);
-	std::cout << std::endl << "FINAL KURRT " << result_cpu.kurtosis() << std::endl;
+	std::cout << std::endl << "FINAL kurt " << result_cpu.kurtosis() << std::endl;
+	std::cout << std::endl << "FINAL count " << result_cpu.get_n() << std::endl;
 
 	test2 = read_and_analyze_file_naive("../../ppr_data/" + line);
 	//std::cout << std::endl << "FINAL KURRT " << test.kurtosis() << std::endl;
