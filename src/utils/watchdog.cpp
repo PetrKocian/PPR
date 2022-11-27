@@ -35,7 +35,13 @@ void Watchdog::run()
 
 		if (processed_now <= processed_old)
 		{
-			std::cout << "WATCHDOG BITE" << std::endl;
+			timeout_count++;
+			std::cout << "Program inactive for " << (timeout_count*timeout.count()/1000) << " seconds" << std::endl;
+			if (timeout_count > 5)
+			{
+				std::cout << "Terminating" << std::endl;
+				std::terminate();
+			}
 		}
 		else
 		{

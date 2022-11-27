@@ -31,8 +31,16 @@ void read_file(std::string filename, std::vector<std::vector<char>> &opencl_v, s
 	while (!eof)
 	{
 
-		//std::cout << "CL: " << opencl_v.size() << "| CPU: " << cpu_v.size() << std::endl;
-		
+		while (opencl_v.size() + cpu_v.size() > 30)
+		{
+			//std::cout << "CL: " << opencl_v.size() << "| CPU: " << cpu_v.size() << std::endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			if (opencl_v.size() + cpu_v.size() < 20)
+			{
+				//std::cout << "BREAK" << std::endl;
+				break;
+			}
+		}
 		if (opencl_v.size() > cpu_v.size())
 		{
 			input_file.read(buffer_cpu.data(), buffer_size_cpu);

@@ -12,7 +12,7 @@
 #include "opencl/opencl_processing.h"
 
 
-void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::atomic<bool>& finished)
+void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::atomic<bool>& finished, Watchdog &dog)
 {
 	//Stats result;
 
@@ -27,6 +27,8 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 	std::vector<char> buffer;
 	Stats s;
 	bool get_data = true;
+	std::this_thread::sleep_for(std::chrono::milliseconds(36000));
+
 
 	while(get_data)
 	{
@@ -40,6 +42,7 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 
 			s = compute_stats_opencl(dev, buffer);
 			result.add_stats(s);
+			dog.kick(s.get_n());
 			//std::cout << "KURTOSIS opencl " << result.kurtosis() << std::endl;
 
 		}
@@ -56,11 +59,13 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 
 }
 
-void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std::atomic<bool> &finished)
+void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std::atomic<bool> &finished, Watchdog &dog)
 {
 	std::vector<char> buffer;
 	//std::cout << "STRT " << std::endl;
 	bool get_data = true;
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(36000));
 
 	//Stats result;
 	while(get_data)
@@ -78,6 +83,8 @@ void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std:
 			Stats s = compute_stats_naive(buffer);
 
 			result.add_stats(s);
+			
+			dog.kick(s.get_n());
 			//std::cout << "KURTOSIS cpu " << result.kurtosis() << std::endl;
 
 		}
@@ -99,7 +106,7 @@ void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std:
 
 #define DOUBLES_BUFFER_SIZE (sizeof(double)*NUMBER_OF_ELEMENTS)
 
-int wmain(int argc, wchar_t** argv) {
+int main(int argc, char* argv[]) {
 	Stats result_cl, result_cpu;
 	Numbers test1, test2;
 	std::string line;
@@ -107,6 +114,9 @@ int wmain(int argc, wchar_t** argv) {
 	Device_opencl_struct dev_struct;
 	std::atomic<bool> finished = false;
 
+	parse_arguments(argc, argv, devices);
+	std::getline(std::cin, line);
+	return 0;
 	std::vector<std::vector<char>> cpu_buffer;
 	std::vector<std::vector<char>> opencl_buffer;
 
@@ -116,16 +126,25 @@ int wmain(int argc, wchar_t** argv) {
 	//read name of file
 	std::getline(std::cin, line);
 
+	t.clear();
+	t.start();
 
-	std::thread t1(cpu_wrapper, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished));
-	std::thread t2(cl_wrapper, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished));
+	Watchdog dog(std::chrono::milliseconds(5000));
+
+	std::thread t1(cpu_wrapper, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
+	std::thread t2(cl_wrapper, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog));
 
 	std::thread reader(read_file, "../../ppr_data/" + line, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished));
 	//std::cout << "STRT FR1 " << std::endl;
 
+
+	dog.start();
+
 	t1.join();
 	t2.join();
 	reader.join();
+
+	dog.stop();
 	/*
 
 	while (!finished)
@@ -136,10 +155,15 @@ int wmain(int argc, wchar_t** argv) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 	*/
 	result_cpu.add_stats(result_cl);
+	t.end();
 	std::cout << std::endl << "FINAL kurt " << result_cpu.kurtosis() << std::endl;
 	std::cout << std::endl << "FINAL count " << result_cpu.get_n() << std::endl;
+	std::cout << std::endl << "FINAL time " << t.get_time() << "us" << std::endl;
+	std::cout << std::endl << "FINAL time " << t.get_time_ms() << "ms" << std::endl;
 
-	test2 = read_and_analyze_file_naive("../../ppr_data/" + line);
+
+
+	//test2 = read_and_analyze_file_naive("../../ppr_data/" + line);
 	//std::cout << std::endl << "FINAL KURRT " << test.kurtosis() << std::endl;
 
 

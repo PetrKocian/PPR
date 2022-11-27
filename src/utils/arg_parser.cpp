@@ -2,9 +2,8 @@
 #include "../opencl/opencl_utils.h"
 #include <iostream>
 #include <vector>
-
-
-
+#include <sstream>
+#include <queue>
 
 std::vector<std::string> generate_args()
 {
@@ -30,37 +29,63 @@ std::vector<std::string> generate_args()
 	return args;
 }
 
-void parse_arguments(std::string &filename, std::vector<cl::Device> &devices)
+void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices)
 {
-	std::vector<std::string> args = generate_args();
-	filename = args.at(0);
-	cl::Device device;
-
-	if (args.size() < 2)
+	if (argc < 3)
 	{
-		std::cout << "NOT ENOUGH ARGS" << std::endl;
+		std::cout << "Not enough arguments, exiting" << std::endl;
 		return;
 	}
+	//std::vector<std::string> args = generate_args();
+	std::string filename(argv[1]);
+	std::string mode(argv[2]);
+	cl::Device device;
+	std::vector<cl::Device> devices_temp;
+	std::stringstream args_ss;
+	std::string arguments;
 
-	if (args.at(1) == "all")
+
+	if (mode == "all" && argc == 3)
 	{
-		std::cout << "ALL"  << std::endl;
+		std::cout << "all mode"  << std::endl;
 		devices = get_all_devices();
 	}
-	else if (args.at(1) == "SMP")
+	else if (mode == "SMP" && argc == 3)
 	{
-		std::cout << "SMMPPP" << std::endl;
+		std::cout << "SMP mode" << std::endl;
 	}
 	else
 	{
-		for (int i = 1; i < args.size(); i++)
+		for (int i = 2; i < argc; i++)
 		{
-			if (get_device(args.at(i), device) == false)
-			{
-				std::cout << "Specified device not found" << std::endl;
-				//exit(1);
-			}
-			devices.push_back(device);
+			args_ss << argv[i];
+			args_ss << " ";
 		}
+		arguments = args_ss.str();
+		
+		devices_temp = get_all_devices();
+		for (cl::Device &dev : devices_temp)
+		{
+			std::string dev_name = dev.getInfo<CL_DEVICE_NAME>();
+			auto pos = arguments.find(dev_name);
+			if (pos != std::string::npos)
+			{
+				std::cout << dev_name <<" device found" << std::endl;
+				devices.push_back(dev);
+				arguments = arguments.substr(0, pos) + arguments.substr(pos+dev_name.size());
+				std::cout << arguments << std::endl;
+			}
+		}
+
+		//erase spaces
+		arguments.erase(std::remove_if(arguments.begin(), arguments.end(), [](unsigned char x) { return std::isspace(x); }), arguments.end());
+		
+		//string should be empty if parameters were correctly input
+		if (!arguments.empty())
+		{
+			std::cout << "Invalid args, exiting" << std::endl;
+			exit(1);
+		}
+		std::cout << "Selected devices mode" << std::endl;
 	}
 }
