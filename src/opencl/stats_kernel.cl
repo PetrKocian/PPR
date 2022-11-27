@@ -21,8 +21,6 @@ __kernel void compute_stats(__global const double* numbers, __global double* res
 	size_t n = 0;
 	size_t id = get_global_id(0);
 
-	printf("id %d \n", id);
-
 	for (size_t i = 0; i < 100; i += 1) {
 		push_cl(m, &n, numbers[id*100 + i]);
 	}

@@ -208,12 +208,6 @@ void Stats::add_stats(Stats_partial stats_to_add)
 	this->m3 = result.m3;
 	this->m4 = result.m4;
 	this->n = result.n;
-
-	/**/
-	std::cout << "m1 " << m1 << std::endl;
-	std::cout << "m2 " << m2 << std::endl;
-	std::cout << "m3 " << m3 << std::endl;
-	std::cout << "m4 " << m4 << std::endl;
 }
 
 //DEBUG PART

@@ -4,7 +4,6 @@
 #include <sstream>
 #include <array>
 #include "opencl_processing.h"
-#include "../utils/stats.h"
 #include "opencl_utils.h"
 #include <filesystem>
 
@@ -14,13 +13,13 @@
 //split into some functions at least
 //stats.h think about implementation to set stats
 
-#define NUMBER_OF_ELEMENTS_CL 10000
+#define NUMBER_OF_ELEMENTS_CL 1000000
 
 #define DOUBLES_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_ELEMENTS_CL)
 
 #define WORKITEMS (NUMBER_OF_ELEMENTS_CL/100)
 
-#define NUMBER_OF_RESULTS (NUMBER_OF_ELEMENTS_CL/WORKITEMS) * 5
+#define NUMBER_OF_RESULTS (WORKITEMS * 5)
 
 #define RESULT_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_RESULTS)
 
@@ -69,7 +68,7 @@ Stats compute_stats_opencl(Device_opencl_struct& dev, std::vector<char> buffer)
 	sp.m4 = result_arr[4];
 	s.set_stats(sp);
 
-	for (int i = 5; i < 500; i += 5)
+	for (int i = 5; i < NUMBER_OF_RESULTS; i += 5)
 	{
 		sp.n = result_arr[i];
 		sp.m1 = result_arr[i + 1];
@@ -91,7 +90,7 @@ void test_vadd(std::string filename)
 	Device_opencl_struct dev;
 
 	std::vector<char> buffer(DOUBLES_BUFFER_SIZE_CL);
-	std::array<double, NUMBER_OF_RESULTS> result_arr;
+	//std::array<double, NUMBER_OF_RESULTS> result_arr;
 
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	input_file.read(buffer.data(), DOUBLES_BUFFER_SIZE_CL);

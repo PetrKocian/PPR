@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../utils/stats.h"
 #include <vector>
 
 struct Numbers
@@ -14,3 +14,4 @@ void read_and_analyze_file_tbb(std::string filename);
 
 Numbers read_and_analyze_file_v(std::string filename);
 Numbers read_and_analyze_file_naive(std::string filename);
+Stats compute_stats_naive(std::vector<char> buffer);

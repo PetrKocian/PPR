@@ -114,7 +114,7 @@ Numbers read_and_analyze_file_v(std::string filename)
 	Numbers result;
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
-	uint16_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
+	size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 	std::vector<char> buffer(buffer_size);
 	double combined_mean = 0;
 	//TODO: move this inside push_v
@@ -272,4 +272,27 @@ Numbers read_and_analyze_file_naive(std::string filename)
 		<< " time: " << t.get_time() << "us time " << t.get_time_ms() << "ms" << std::endl;
 	t.clear();
 	return result;
+}
+
+
+Stats compute_stats_naive(std::vector<char> buffer)
+{
+	
+	Stats stats;
+
+	//std::cout << "HERE " << std::endl;
+	//std::cout << buffer.size();
+	double* double_values = (double*)buffer.data();
+
+	//check if doubles are normal/zero and add them to result structure
+	for (int i = 0; i < buffer.size()/8; i++)
+	{
+
+		double number = double_values[i];
+		//std::cout << "HERE " << i << " " << number << std::endl;
+
+		stats.push(number);
+	}
+
+	return stats;
 }
