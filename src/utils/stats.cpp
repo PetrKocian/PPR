@@ -11,10 +11,10 @@ void Stats::set_stats(Stats_partial sp)
 	this->m3 = sp.m3;
 	this->m4 = sp.m4;
 	this->n = sp.n;
-
+	this->only_ints = sp.only_ints;
 }
 
-Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b)
+Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b, double only_ints_a, double only_ints_b)
 {
 	Stats_partial result;
 
@@ -42,6 +42,7 @@ Stats_partial combine_stats(double count_a, double count_b, double m4_a, double 
 	result.m2 = m2_combined;
 	result.m3 = m3_combined;
 	result.m4 = m4_combined;
+	result.only_ints = only_ints_a + only_ints_b;
 
 	return result;
 }
@@ -60,7 +61,6 @@ void Stats::clear()
 	m2_v = _mm256_setzero_pd();
 	m3_v = _mm256_setzero_pd();
 	m4_v = _mm256_setzero_pd();
-	only_ints_v = _mm256_setzero_pd();
 	delta_v = _mm256_setzero_pd();
 	delta_n_v = _mm256_setzero_pd();
 	delta_n2_v = _mm256_setzero_pd();
@@ -146,7 +146,13 @@ bool Stats::only_integers() const
 	{
 		result = true;
 	}
+
 	return result;
+}
+
+double Stats::get_only_ints() const
+{
+	return only_ints;
 }
 
 void Stats::finalize_stats()
@@ -164,20 +170,17 @@ void Stats::finalize_stats()
 	double* m4_p = (double*)& m4_v;
 
 	//combine first and second half of AVX2 vector
-	Stats_partial a = combine_stats(n_p[0], n_p[1], m4_p[0], m4_p[1], m3_p[0], m3_p[1], m2_p[0], m2_p[1], m1_p[0], m1_p[1]);
-	Stats_partial b = combine_stats(n_p[2], n_p[3], m4_p[2], m4_p[3], m3_p[2], m3_p[3], m2_p[2], m2_p[3], m1_p[2], m1_p[3]);
+	Stats_partial a = combine_stats(n_p[0], n_p[1], m4_p[0], m4_p[1], m3_p[0], m3_p[1], m2_p[0], m2_p[1], m1_p[0], m1_p[1], 0, 0);
+	Stats_partial b = combine_stats(n_p[2], n_p[3], m4_p[2], m4_p[3], m3_p[2], m3_p[3], m2_p[2], m2_p[3], m1_p[2], m1_p[3], 0, 0);
 
 	//combine AVX2 halves together
-	Stats_partial result_partial = combine_stats(a.n, b.n, a.m4, b.m4, a.m3, b.m3, a.m2, b.m2, a.m1, b.m1);
+	Stats_partial result_partial = combine_stats(a.n, b.n, a.m4, b.m4, a.m3, b.m3, a.m2, b.m2, a.m1, b.m1, a.only_ints, b.only_ints);
 
 	//combine AVX2 and single doubles
-	Stats_partial result_final = combine_stats(result_partial.n, n, result_partial.m4, m4, result_partial.m3, m3, result_partial.m2, m2, result_partial.m1, m1);
+	Stats_partial result_final = combine_stats(result_partial.n, n, result_partial.m4, m4, result_partial.m3, m3, result_partial.m2, m2, result_partial.m1, m1, only_ints, result_partial.only_ints);
 
 	//set all variables to zero in case this function is called multiple times
-	//TODO: move only_ints to combine_stats()
-	double temp = this->only_ints;
 	this->clear();
-	this->only_ints = temp;
 
 	//assign final values
 	this->m1 = result_final.m1;
@@ -185,23 +188,26 @@ void Stats::finalize_stats()
 	this->m3 = result_final.m3;
 	this->m4 = result_final.m4;
 	this->n = result_final.n;
+	this->only_ints = result_final.only_ints;
 
 }
 
 void Stats::add_stats(Stats stats_to_add)
 {
-	Stats_partial result = combine_stats(n, stats_to_add.n, m4, stats_to_add.m4, m3, stats_to_add.m3, m2, stats_to_add.m2, m1, stats_to_add.m1);
+	Stats_partial result = combine_stats(n, stats_to_add.n, m4, stats_to_add.m4, m3, stats_to_add.m3, m2, stats_to_add.m2, m1, stats_to_add.m1, only_ints, stats_to_add.only_ints);
 
 	this->m1 = result.m1;
 	this->m2 = result.m2;
 	this->m3 = result.m3;
 	this->m4 = result.m4;
 	this->n = result.n;
+	this->only_ints = result.only_ints;
+
 }
 
 void Stats::add_stats(Stats_partial stats_to_add)
 {
-	Stats_partial result = combine_stats(n, stats_to_add.n, m4, stats_to_add.m4, m3, stats_to_add.m3, m2, stats_to_add.m2, m1, stats_to_add.m1);
+	Stats_partial result = combine_stats(n, stats_to_add.n, m4, stats_to_add.m4, m3, stats_to_add.m3, m2, stats_to_add.m2, m1, stats_to_add.m1, only_ints, stats_to_add.only_ints);
 
 	this->m1 = result.m1;
 	this->m2 = result.m2;
@@ -209,12 +215,17 @@ void Stats::add_stats(Stats_partial stats_to_add)
 	this->m4 = result.m4;
 	this->n = result.n;
 }
+
+void Stats::push_only_int(double x)
+{
+	only_ints += x;
+}
+
 
 //DEBUG PART
 
 double Stats::mean_v()
 {
-	//TODO: change to stream_pd
 	double mean_temp = 0;
 	__m128d a = _mm256_extractf128_pd(m1_v, 0);
 	__m128d b = _mm256_extractf128_pd(m1_v, 1);
@@ -267,7 +278,7 @@ uint64_t Stats::n_of_v()
 uint64_t Stats::get_n() {
 	return n;
 }
-
+/*
 double Stats::kurtosis_v()
 {
 	double* m1_p = (double*)& m1_v;
@@ -284,7 +295,8 @@ double Stats::kurtosis_v()
 
 	return (result.m4 * result.n) / (result.m2 * result.m2) - 3;
 }
-
+*/
+/*
 double Stats::kurtosis_complete()
 {
 	double* n_p = (double*)& n_v;
@@ -301,4 +313,4 @@ double Stats::kurtosis_complete()
 	Stats_partial result_final = combine_stats(result.n, n, result.m4, m4, result.m3, m3, result.m2, m2, result.m1, m1);
 
 	return (result_final.m4 * result_final.n) / (result_final.m2 * result_final.m2) - 3;
-}
+}*/

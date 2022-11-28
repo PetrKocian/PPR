@@ -12,6 +12,7 @@ public:
 	double m3 = 0;
 	double m4 = 0;
 	double n = 0;
+	double only_ints = 0;
 };
 
 class Stats
@@ -32,7 +33,6 @@ private:
 	__m256d m3_v = _mm256_setzero_pd();
 	__m256d m4_v = _mm256_setzero_pd();
 	//helper variables for computation
-	__m256d only_ints_v = _mm256_setzero_pd();
 	__m256d delta_v = _mm256_setzero_pd();
 	__m256d delta_n_v = _mm256_setzero_pd();
 	__m256d delta_n2_v = _mm256_setzero_pd();
@@ -58,6 +58,8 @@ public:
 	void add_stats(Stats_partial stats_to_add);
 	void add_stats(Stats stats_to_add);
 
+	void push_only_int(double x);
+
 	//TODO: debug
 	double mean() const;
 	double mean_v();
@@ -65,9 +67,11 @@ public:
 	uint64_t get_n();
 	double kurtosis_v();
 	double kurtosis_complete();
+	double get_only_ints() const;
 
 };
 
 
 //combine a pair of stats
-Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b, double m2_a, double m2_b, double m1_a, double m1_b);
+Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b,
+	double m2_a, double m2_b, double m1_a, double m1_b, double only_ints_a, double only_ints_b);

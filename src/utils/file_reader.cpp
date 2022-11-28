@@ -1,5 +1,4 @@
 #include "file_reader.h"
-#include "utils.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -9,31 +8,31 @@
 
 std::mutex cpu_buffer_mutex;
 std::mutex cl_buffer_mutex;
-void read_file(std::string filename, std::vector<std::vector<char>> &opencl_v, std::vector<std::vector<char>> &cpu_v, std::atomic<bool> &finished)
+void read_file(std::string filename, std::vector<std::vector<char>> &opencl_v, std::vector<std::vector<char>> &cpu_v, std::atomic<bool> &finished, mode mode)
 {
+	std::cout << "reading file '" << filename << "'"<< std::endl;
 
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
-	bool eof = false;
 	size_t buffer_size_cl = sizeof(double) * NUMBER_OF_DOUBLES_CL;
 	size_t buffer_size_cpu = sizeof(double) * NUMBER_OF_DOUBLES;
 
 	std::vector<char> buffer_cpu(buffer_size_cpu);
 	std::vector<char> buffer_cl(buffer_size_cl);
 
-
 	//check if file opened
 	if (!input_file)
 	{
-		std::cout << "File failed to open" << std::endl;
-		eof = true;
+		std::cout << "File failed to open, exiting" << std::endl;
+		std::terminate();
 	}
-
-	while (!eof)
+	std::cout << "MODE " << mode;
+	while (true)
 	{
+		//std::cout << "reading file" << std::endl;
 
 		while (opencl_v.size() + cpu_v.size() > 30)
 		{
-			//std::cout << "CL: " << opencl_v.size() << "| CPU: " << cpu_v.size() << std::endl;
+			std::cout << "CL: " << opencl_v.size() << "| CPU: " << cpu_v.size() << std::endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			if (opencl_v.size() + cpu_v.size() < 20)
 			{
@@ -41,7 +40,7 @@ void read_file(std::string filename, std::vector<std::vector<char>> &opencl_v, s
 				break;
 			}
 		}
-		if (opencl_v.size() > cpu_v.size())
+		if (mode != opencl && opencl_v.size() > cpu_v.size() || mode == smp)
 		{
 			input_file.read(buffer_cpu.data(), buffer_size_cpu);
 			if (input_file.gcount() == 0)

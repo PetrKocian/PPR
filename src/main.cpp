@@ -16,6 +16,7 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 {
 	//Stats result;
 
+	std::cout << "OPENCL RUNNING" << std::endl;
 
 	Device_opencl_struct dev;
 
@@ -27,8 +28,6 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 	std::vector<char> buffer;
 	Stats s;
 	bool get_data = true;
-	std::this_thread::sleep_for(std::chrono::milliseconds(36000));
-
 
 	while(get_data)
 	{
@@ -55,17 +54,13 @@ void cl_wrapper(std::vector<std::vector<char>>& cl_buffer, Stats &result,std::at
 			cl_buffer_mutex.unlock();
 		}
 	}
-
-
 }
 
 void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std::atomic<bool> &finished, Watchdog &dog)
 {
 	std::vector<char> buffer;
-	//std::cout << "STRT " << std::endl;
+	std::cout << "STRT " << std::endl;
 	bool get_data = true;
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(36000));
 
 	//Stats result;
 	while(get_data)
@@ -109,61 +104,64 @@ void cpu_wrapper(std::vector<std::vector<char>> &cpu_buffer, Stats &result, std:
 int main(int argc, char* argv[]) {
 	Stats result_cl, result_cpu;
 	Numbers test1, test2;
-	std::string line;
+	std::string line, filename;
 	std::vector<cl::Device> devices;
 	Device_opencl_struct dev_struct;
 	std::atomic<bool> finished = false;
-
-	parse_arguments(argc, argv, devices);
-	std::getline(std::cin, line);
-	return 0;
+	mode mode;
 	std::vector<std::vector<char>> cpu_buffer;
 	std::vector<std::vector<char>> opencl_buffer;
-
-
-	std::wcout << "Zadejte jmeno souboru:" << std::endl;
-
-	//read name of file
-	std::getline(std::cin, line);
-
-	t.clear();
-	t.start();
-
 	Watchdog dog(std::chrono::milliseconds(5000));
 
-	std::thread t1(cpu_wrapper, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
-	std::thread t2(cl_wrapper, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog));
+	//parse args - returns opencl devices and desired mode or exits in case of wrong args
+	parse_arguments(argc, argv, devices, filename, mode);
+	
+	//start reader thread
+	std::thread reader(read_file, "../../ppr_data/" + filename, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished), mode);
 
-	std::thread reader(read_file, "../../ppr_data/" + line, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished));
-	//std::cout << "STRT FR1 " << std::endl;
-
-
+	//start watchdog
 	dog.start();
 
-	t1.join();
-	t2.join();
-	reader.join();
-
-	dog.stop();
-	/*
-
-	while (!finished)
+	if (mode == smp)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		;
+		//start only smp thread
+		std::cout << "smp mode" << std::endl;
+		std::thread cpu_t(cpu_wrapper, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
+		reader.join();
+		cpu_t.join();
 	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-	*/
-	result_cpu.add_stats(result_cl);
-	t.end();
+	else if(mode == opencl)
+	{
+		std::cout << "opencl mode" << std::endl;
+		std::thread opencl_t(cl_wrapper, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog));
+		opencl_t.join();
+
+		std::thread cpu_t(cpu_wrapper, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
+		cpu_t.join();
+
+		reader.join();
+		result_cpu.add_stats(result_cl);
+	}
+	else
+	{
+		std::cout << "all mode" << std::endl;
+		std::thread opencl_t(cl_wrapper, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog));
+		std::thread cpu_t(cpu_wrapper, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
+
+		cpu_t.join();
+		opencl_t.join();
+		reader.join();
+		result_cpu.add_stats(result_cl);
+	}
+	
+	//stop watchdog
+	dog.stop();
+
 	std::cout << std::endl << "FINAL kurt " << result_cpu.kurtosis() << std::endl;
 	std::cout << std::endl << "FINAL count " << result_cpu.get_n() << std::endl;
-	std::cout << std::endl << "FINAL time " << t.get_time() << "us" << std::endl;
-	std::cout << std::endl << "FINAL time " << t.get_time_ms() << "ms" << std::endl;
 
 
-
-	//test2 = read_and_analyze_file_naive("../../ppr_data/" + line);
+	test2 = read_and_analyze_file_naive("../../ppr_data/" + filename);
 	//std::cout << std::endl << "FINAL KURRT " << test.kurtosis() << std::endl;
 
 

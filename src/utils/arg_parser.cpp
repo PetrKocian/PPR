@@ -5,54 +5,32 @@
 #include <sstream>
 #include <queue>
 
-std::vector<std::string> generate_args()
-{
-	std::string line;
-	std::vector<std::string> args;
-
-	std::cout << "INPUT ARGUMENTS:" << std::endl;
-	std::getline(std::cin, line);
-
-	while(true)
-	{
-		auto pos = line.find(" ");
-		if (pos == std::string::npos)
-		{
-			args.push_back(line);
-			break;
-		}
-
-		args.push_back(line.substr(0, pos));
-		line = line.substr(pos + 1);
-	}
-	std::cout << "succes " << std::endl;
-	return args;
-}
-
-void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices)
+void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, std::string &filename, mode &mode_ret)
 {
 	if (argc < 3)
 	{
 		std::cout << "Not enough arguments, exiting" << std::endl;
 		return;
 	}
-	//std::vector<std::string> args = generate_args();
-	std::string filename(argv[1]);
-	std::string mode(argv[2]);
+
+	filename = argv[1];
+	std::string mode_in(argv[2]);
 	cl::Device device;
 	std::vector<cl::Device> devices_temp;
 	std::stringstream args_ss;
 	std::string arguments;
 
 
-	if (mode == "all" && argc == 3)
+	if (mode_in == "all" && argc == 3)
 	{
 		std::cout << "all mode"  << std::endl;
 		devices = get_all_devices();
+		mode_ret = all;
 	}
-	else if (mode == "SMP" && argc == 3)
+	else if (mode_in == "SMP" && argc == 3)
 	{
 		std::cout << "SMP mode" << std::endl;
+		mode_ret = smp;
 	}
 	else
 	{
@@ -87,5 +65,6 @@ void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices)
 			exit(1);
 		}
 		std::cout << "Selected devices mode" << std::endl;
+		mode_ret = opencl;
 	}
 }

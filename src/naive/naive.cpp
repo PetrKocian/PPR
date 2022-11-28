@@ -117,7 +117,6 @@ Numbers read_and_analyze_file_v(std::string filename)
 	size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 	std::vector<char> buffer(buffer_size);
 	double combined_mean = 0;
-	//TODO: move this inside push_v
 	double only_int = 0;
 
 	Stats stats;
@@ -140,6 +139,7 @@ Numbers read_and_analyze_file_v(std::string filename)
 
 		const double* double_values = (double*)buffer.data();
 		bool doubles_valid = true;
+		uint16_t index = 0;
 
 		for (int i = 0; i < end; i += 4)
 		{
@@ -151,23 +151,27 @@ Numbers read_and_analyze_file_v(std::string filename)
 				only_int += number - std::floor(number);
 				if (double_class != FP_NORMAL || FP_ZERO)
 				{
+					index = j;
 					doubles_valid = false;
 				}
 			}
 
-			//TODO: throw away invalid number
 			if (doubles_valid == false)
 			{
 				for (int j = 0; j < 4; j++)
 				{
-					double number = double_values[i];
-					stats.push(number);
+					if (j != index)
+					{
+						double number = double_values[i];
+						stats.push(number);
+					}
 				}
 				continue;
 			}
 
 			__m256d vec = _mm256_load_pd(double_values + i);
 			stats.push_v(vec);
+			stats.push_only_int(only_int);
 		}
 	}
 
@@ -196,14 +200,13 @@ Numbers read_and_analyze_file_v(std::string filename)
 		}
 
 		//TODO: make a function
-		combined_mean = (stats.mean() * result.valid_doubles + stats.mean_v() * stats.n_of_v()) / (stats.n_of_v() + result.valid_doubles);
 	}
 
 	stats.finalize_stats();
 
 	t.end();
 
-	std::cout << "stats mean " << stats.mean_v() << " " << combined_mean << " n " << stats.get_n()<<" kurtosis " << stats.kurtosis() << " only ints "<< only_int<< " " << stats.only_integers()
+	std::cout << "stats mean " << stats.mean() << " n " << stats.get_n()<<" kurtosis " << stats.kurtosis() << " only ints "<< only_int<< " " << stats.only_integers()
 		<< " time: " << t.get_time() << "us time " << t.get_time_ms() << "ms" << std::endl;
 	t.clear();
 	return result;
@@ -268,7 +271,7 @@ Numbers read_and_analyze_file_naive(std::string filename)
 
 	t.end();
 
-	std::cout << "stats mean " << stats.mean() <<  " n " << stats.get_n() <<" kurtosis " << stats.kurtosis() << " only ints " << stats.only_integers()
+	std::cout << "stats mean " << stats.mean() <<  " n " << stats.get_n() <<" kurtosis " << stats.kurtosis() << " only ints " << stats.get_only_ints() << " " << stats.only_integers()
 		<< " time: " << t.get_time() << "us time " << t.get_time_ms() << "ms" << std::endl;
 	t.clear();
 	return result;
@@ -293,6 +296,6 @@ Stats compute_stats_naive(std::vector<char> buffer)
 
 		stats.push(number);
 	}
-
+	std::cout << stats.get_only_ints() << std::endl;
 	return stats;
 }

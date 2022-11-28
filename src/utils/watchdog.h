@@ -6,7 +6,7 @@
 class Watchdog
 {
 private:
-	std::atomic<size_t> processed_items= 0;
+	std::atomic<size_t> processed_items = 0;
 	uint16_t timeout_count = 0;
 	std::thread watchdog_thread;
 	std::chrono::milliseconds timeout;
