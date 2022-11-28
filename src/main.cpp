@@ -157,6 +157,7 @@ int main(int argc, char* argv[]) {
 	//stop watchdog
 	dog.stop();
 
+	std::cout << std::endl << "FINAL ints " << result_cpu.get_only_ints() << std::endl;
 	std::cout << std::endl << "FINAL kurt " << result_cpu.kurtosis() << std::endl;
 	std::cout << std::endl << "FINAL count " << result_cpu.get_n() << std::endl;
 
@@ -203,7 +204,7 @@ int main(int argc, char* argv[]) {
 
 	*/
 
-	std::getline(std::cin, line);
+	//std::getline(std::cin, line);
 
 	//std::terminate();
 

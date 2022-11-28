@@ -198,8 +198,6 @@ Numbers read_and_analyze_file_v(std::string filename)
 				result.invalid++;
 			}
 		}
-
-		//TODO: make a function
 	}
 
 	stats.finalize_stats();
@@ -293,9 +291,12 @@ Stats compute_stats_naive(std::vector<char> buffer)
 
 		double number = double_values[i];
 		//std::cout << "HERE " << i << " " << number << std::endl;
-
-		stats.push(number);
+		auto double_class = std::fpclassify(number);
+		if (double_class == FP_NORMAL || FP_ZERO)
+		{
+			stats.push(number);
+		}
 	}
-	std::cout << stats.get_only_ints() << std::endl;
+	//std::cout << stats.get_only_ints() << std::endl;
 	return stats;
 }

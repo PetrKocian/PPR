@@ -214,6 +214,8 @@ void Stats::add_stats(Stats_partial stats_to_add)
 	this->m3 = result.m3;
 	this->m4 = result.m4;
 	this->n = result.n;
+	this->only_ints = result.only_ints;
+
 }
 
 void Stats::push_only_int(double x)

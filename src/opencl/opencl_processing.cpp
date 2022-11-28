@@ -8,18 +8,13 @@
 #include <filesystem>
 
 
-
-//TODO: CLEANUP
-//split into some functions at least
-//stats.h think about implementation to set stats
-
 #define NUMBER_OF_ELEMENTS_CL 1000000
 
 #define DOUBLES_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_ELEMENTS_CL)
 
 #define WORKITEMS (NUMBER_OF_ELEMENTS_CL/100)
 
-#define NUMBER_OF_RESULTS (WORKITEMS * 5)
+#define NUMBER_OF_RESULTS (WORKITEMS * 6)
 
 #define RESULT_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_RESULTS)
 
@@ -52,7 +47,6 @@ void prepare_opencl_device(cl::Device device, Device_opencl_struct &device_struc
 
 Stats compute_stats_opencl(Device_opencl_struct& dev, std::vector<char> buffer)
 {
-
 	std::array<double, NUMBER_OF_RESULTS> result_arr;
 
 	dev.queue.enqueueWriteBuffer(dev.buffer_doubles, CL_TRUE, 0, DOUBLES_BUFFER_SIZE_CL, buffer.data());
@@ -66,22 +60,22 @@ Stats compute_stats_opencl(Device_opencl_struct& dev, std::vector<char> buffer)
 	sp.m2 = result_arr[2];
 	sp.m3 = result_arr[3];
 	sp.m4 = result_arr[4];
+	sp.only_ints = result_arr[5];
+
 	s.set_stats(sp);
 
-	for (int i = 5; i < NUMBER_OF_RESULTS; i += 5)
+	for (int i = 6; i < NUMBER_OF_RESULTS; i += 6)
 	{
 		sp.n = result_arr[i];
 		sp.m1 = result_arr[i + 1];
 		sp.m2 = result_arr[i + 2];
 		sp.m3 = result_arr[i + 3];
 		sp.m4 = result_arr[i + 4];
+		sp.only_ints = result_arr[i + 5];
+
 		s.add_stats(sp);
 	}
-	/*
-	std::cout << "KURT_inside " << s.kurtosis() << std::endl;
-	std::cout << "count100 " << s.get_n() << std::endl;
-	std::cout << "mean100 " << s.mean() << std::endl;
-	*/
+
 	return s;
 }
 
