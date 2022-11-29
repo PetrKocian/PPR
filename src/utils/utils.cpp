@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 
+//helper function which returns double values from AVX2 double vector as one string
 std::string pd_v_str(__m256d vec)
 {
 	std::stringstream ss;
@@ -19,4 +20,13 @@ std::string pd_v_str(__m256d vec)
 	 std::string result = ss.str();
 
 	return result;
+}
+
+distr decide_distribution(Stats stats)
+{
+	if (stats.kurtosis() > 3)
+	{
+		return exponential;
+	}
+	return normal;
 }

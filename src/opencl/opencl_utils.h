@@ -14,5 +14,5 @@ struct Device_opencl_struct
 };
 
 std::string load_kernel_code(std::string filename);
-std::vector<cl::Device> get_all_devices();
+std::vector<cl::Device> get_all_opencl_devices();
 bool get_device(std::string requested_device_name, cl::Device& target_device);

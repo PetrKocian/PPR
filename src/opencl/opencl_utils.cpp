@@ -5,6 +5,7 @@
 #include <array>
 #include "opencl_utils.h"
 
+//return code from filename as string
 std::string load_kernel_code(std::string filename) {
 	std::ifstream fileStream(filename);
 	std::stringstream buffer;
@@ -12,7 +13,8 @@ std::string load_kernel_code(std::string filename) {
 	return buffer.str();
 }
 
-std::vector<cl::Device> get_all_devices()
+//returns vector of all available opencl devices
+std::vector<cl::Device> get_all_opencl_devices()
 {
 	std::vector<cl::Device> all_devices;
 	std::vector<cl::Device> all_platform_devices;
@@ -41,6 +43,8 @@ std::vector<cl::Device> get_all_devices()
 	return all_devices;
 }
 
+//CURRENTLY NOT IN USE
+//returns true or false based if requested device was found, and returns it as &target_device if true
 bool get_device(std::string requested_device_name, cl::Device& target_device)
 {
 	std::vector<cl::Device> all_devices;

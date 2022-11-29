@@ -1,7 +1,7 @@
 #pragma once
 #include <chrono>
 
-
+//class for timing benchmarks
 class Timer
 {
 private:
@@ -16,4 +16,5 @@ public:
 	int get_time_ms() const;
 };
 
+//global timer instance
 static Timer t;

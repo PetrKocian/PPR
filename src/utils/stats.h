@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <immintrin.h>
 
-
+//helper struct for cases when whole Stats instance isn't needed
 struct Stats_partial
 {
 public:
@@ -38,9 +38,8 @@ private:
 	__m256d delta_n2_v = _mm256_setzero_pd();
 	__m256d term1_v = _mm256_setzero_pd();
 	__m256d term1_temp_v = _mm256_setzero_pd();
-
-
 public:
+	//set stats according to input partial stats
 	void set_stats(Stats_partial sp);
 	//set all values to 0
 	void clear();
@@ -57,20 +56,18 @@ public:
 	//adds stats to this stats
 	void add_stats(Stats_partial stats_to_add);
 	void add_stats(Stats stats_to_add);
-
+	//computes only_ints for x
 	void push_only_int(double x);
-
-	//TODO: DELETE OR KEEP?
+	//returns mean
 	double mean() const;
-	double mean_v();
-	uint64_t n_of_v();
+	//returns number of elements
 	uint64_t get_n();
-	double kurtosis_v();
-	double kurtosis_complete();
+	//returns value of only_ints
 	double get_only_ints() const;
+	//helper function returns total count of AVX2 stats
+	uint64_t n_of_v();
 
 };
-
 
 //combine a pair of stats
 Stats_partial combine_stats(double count_a, double count_b, double m4_a, double m4_b, double m3_a, double m3_b,
