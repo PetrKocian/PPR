@@ -3,6 +3,7 @@
 #include <string>
 #include <mutex>
 #include "stats.h"
+#include <atomic>
 
 //number of elements passed to managing threads for cpu/opencl
 #define NUMBER_OF_DOUBLES_CPU 10000
@@ -19,13 +20,30 @@ enum mode
 	opencl = 2
 };
 
-enum distr
+enum distr_type
 {
 	normal = 0,
 	poisson = 1,
 	exponential = 2,
-	uniform = 3
+	uniform = 3,
+	unknown = 4
+};
+
+class Distribution
+{
+private:
+	std::atomic<size_t> normal_c = 0;
+	std::atomic<size_t> poisson_c = 0;
+	std::atomic<size_t> exponential_c = 0;
+	std::atomic<size_t> uniform_c = 0;
+	std::atomic<size_t> unknown_c = 0;
+	size_t max_size = 0;
+	size_t total = 0;
+	distr_type final_distribution = unknown;
+public:
+	void make_distribution_decision();
+	void push_distribution(distr_type distribution_type);
+	void print_distribution_decision();
 };
 
 std::string pd_v_str(__m256d vec);
-distr decide_distr(Stats stats);

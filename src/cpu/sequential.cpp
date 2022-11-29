@@ -10,7 +10,7 @@
 #include "../utils/utils.h"
 
 //function passed to a cpu manager thread
-void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std::atomic<bool>& finished, Watchdog& dog)
+void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std::atomic<bool>& finished, Watchdog& dog, Distribution &distribution)
 {
 	//local variables
 	std::vector<char> buffer;
@@ -32,6 +32,7 @@ void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std:
 			//compute and update result stats
 			stats = compute_stats_v(buffer);
 			result.add_stats(stats);
+			distribution.push_distribution(static_cast<distr_type>(stats.get_distribution_s()));
 			//kick watchdog
 			dog.kick(stats.get_n());
 		}

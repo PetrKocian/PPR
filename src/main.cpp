@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
 	std::atomic<bool> finished = false;
 	std::vector<std::vector<char>> cpu_buffer;
 	std::vector<std::vector<char>> opencl_buffer;
+	Distribution distribution;
 
 	//init watchdog
 	Watchdog dog(std::chrono::milliseconds(5000));
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]) {
 	if (mode == smp)
 	{
 		//start smp computation
-		result_cpu = tbb_read_and_analyze_file("../../ppr_data/" + filename, dog);
+		result_cpu = tbb_read_and_analyze_file("../../ppr_data/" + filename, dog, distribution);
 	}
 	else if(mode == opencl)
 	{
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
 		std::vector<std::thread> open_cl_threads;
 		for (cl::Device& dev : devices)
 		{
-			open_cl_threads.push_back(std::thread(cl_manager, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog), std::ref(dev)));
+			open_cl_threads.push_back(std::thread(cl_manager, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog), std::ref(dev),std::ref(distribution)));
 		}
 		for (auto &thread : open_cl_threads)
 		{
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		//start cpu manager thread to compute "leftover" data chunk which wasn't big enough for opencl
-		std::thread cpu_t(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
+		std::thread cpu_t(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
 		cpu_t.join();
 
 		reader.join();
@@ -70,10 +71,10 @@ int main(int argc, char* argv[]) {
 		std::vector<std::thread> open_cl_threads;
 
 		//start opencl manager thread for each device and a cpu thread
-		std::thread cpu_t(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog));
+		std::thread cpu_t(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
 		for (cl::Device &dev: devices)
 		{
-			open_cl_threads.push_back(std::thread(cl_manager, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog), std::ref(dev)));
+			open_cl_threads.push_back(std::thread(cl_manager, std::ref(opencl_buffer), std::ref(result_cl), std::ref(finished), std::ref(dog), std::ref(dev), std::ref(distribution)));
 		}
 		for (auto& thread : open_cl_threads)
 		{
@@ -84,13 +85,12 @@ int main(int argc, char* argv[]) {
 		//merge stats
 		result_cpu.add_stats(result_cl);
 	}
-	
 	//stop watchdog
 	dog.stop();
 
-	std::cout << std::endl << "FINAL ints " << result_cpu.get_only_ints() << std::endl;
-	std::cout << std::endl << "FINAL kurt " << result_cpu.kurtosis() << std::endl;
-	std::cout << std::endl << "FINAL count " << result_cpu.get_n() << std::endl;
+	//decide distribution and print decision
+	distribution.make_distribution_decision();
+	distribution.print_distribution_decision();
 
 	return 0;
 }

@@ -1,11 +1,13 @@
 #include <atomic>
 #include <thread>
 #include <chrono>
+#include "utils.h"
 #pragma once
 
 class Watchdog
 {
 private:
+	Distribution final_distr;
 	std::atomic<size_t> processed_items = 0;
 	uint16_t timeout_count = 0;
 	std::thread watchdog_thread;

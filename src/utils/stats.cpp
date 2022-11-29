@@ -1,5 +1,4 @@
 #include "stats.h"
-#include "utils.h"
 #include <cmath>
 #include <iostream>
 
@@ -268,4 +267,74 @@ uint64_t Stats::n_of_v()
 	
 	uint64_t n_result = static_cast<uint64_t>(n_temp);
 	return n_result;
+}
+
+double Stats::get_distr_par(uint16_t distr)
+{
+	distr_type type = static_cast<distr_type>(distr);
+	switch (type)
+	{
+	case normal:
+		return 0;
+		break;
+	case poisson:
+		return 1/this->mean();
+		break;
+	case exponential:
+		return 6;
+		break;
+	case uniform:
+		return (-6.0 / 5.0);
+		break;
+	case unknown:
+	default:
+		return 0;
+		break;
+	}
+}
+
+int Stats::get_distribution_s()
+{
+	double mean = this->mean();
+	double kurtosis = this->kurtosis();
+	int index = 0;
+	distr_type return_type;
+
+	double min_dev_from_distribution = 100;
+	for (int i = 0; i < 4; i++)
+	{
+		if (std::abs(kurtosis - get_distr_par(i)) < min_dev_from_distribution)
+		{
+			min_dev_from_distribution = std::abs(kurtosis - get_distr_par(i));
+			index = i;
+		}
+	}
+
+	if ((min_dev_from_distribution > 0.5 && index != static_cast<int>(exponential)) ||
+		(min_dev_from_distribution > 2 && index == static_cast<int>(exponential)))
+	{
+		index = 4;
+	}
+
+	switch (static_cast<distr_type>(index))
+	{
+	case normal:
+		return_type = normal;
+		break;
+	case poisson:
+		return_type = poisson;
+		break;
+	case exponential:
+		return_type = exponential;
+		break;
+	case uniform:
+		return_type = uniform;
+		break;
+	case unknown:
+	default:
+		return_type = unknown;
+		break;
+	}
+
+	return return_type;	
 }

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <immintrin.h>
+#include "utils.h"
 
 //helper struct for cases when whole Stats instance isn't needed
 struct Stats_partial
@@ -66,6 +67,10 @@ public:
 	double get_only_ints() const;
 	//helper function returns total count of AVX2 stats
 	uint64_t n_of_v();
+	//returns stats distribution
+	int get_distribution_s();
+	//returns parameters of distributions
+	double get_distr_par(uint16_t distr);
 
 };
 

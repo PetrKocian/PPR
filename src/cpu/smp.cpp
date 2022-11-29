@@ -12,7 +12,7 @@
 
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES_CPU;
 
-Stats tbb_read_and_analyze_file(std::string filename, Watchdog& dog)
+Stats tbb_read_and_analyze_file(std::string filename, Watchdog& dog, Distribution& distribution)
 {
 	tbb::flow::graph g;
 	std::vector<char> buffer(buffer_size);
@@ -55,6 +55,7 @@ Stats tbb_read_and_analyze_file(std::string filename, Watchdog& dog)
 			}
 			//add AVX2 vector doubles together to finalize stats
 			stats.finalize_stats();
+			distribution.push_distribution(static_cast<distr_type>(stats.get_distribution_s()));
 			dog.kick(stats.get_n());
 			return stats;
 		}
