@@ -104,20 +104,20 @@ void Distribution::print_distribution_decision()
 		switch (final_distribution)
 		{
 		case normal:
-			std::cout << std::endl << "Distribution seems to be normally distributed, " << 100 * normal_c / total << "% are normal chunks" << std::endl;
+			std::cout << std::endl << "Data seem to be normally distributed, " << 100 * normal_c / total << "% are normal chunks" << std::endl;
 			break;
 		case poisson:
-			std::cout << std::endl << "Distribution seems to be poisson distributed, " << 100 * poisson_c / total << "% are poission chunks" << std::endl;
+			std::cout << std::endl << "Data seem to be poisson distributed, " << 100 * poisson_c / total << "% are poission chunks" << std::endl;
 			break;
 		case exponential:
-			std::cout << std::endl << "Distribution seems to be exponentially distributed, " << 100 * exponential_c / total << "% are exponential chunks" << std::endl;
+			std::cout << std::endl << "Data seem to be exponentially distributed, " << 100 * exponential_c / total << "% are exponential chunks" << std::endl;
 			break;
 		case uniform:
-			std::cout << std::endl << "Distribution seems to be uniformly distributed, " << 100 * uniform_c / total << "% are uniform chunks" << std::endl;
+			std::cout << std::endl << "Data seem to be uniformly distributed, " << 100 * uniform_c / total << "% are uniform chunks" << std::endl;
 			break;
 		case unknown:
 		default:
-			std::cout << std::endl << "Distribution doesn't have a clear distribution chunks are: " <<std::endl
+			std::cout << std::endl << "Data don't have a clear distribution, chunks are: " <<std::endl
 				<< 100 * normal_c / total << "% normal " << std::endl << 100 * poisson_c / total << "% poisson" << std::endl
 				<< 100 * exponential_c / total << "% exponential " << std::endl << 100 * uniform_c / total << "% uniform " << std::endl
 				<< 100 * unknown_c / total << "% unknown" << std::endl;
@@ -127,7 +127,7 @@ void Distribution::print_distribution_decision()
 	//no distribution has over 70% chunks
 	else
 	{
-		std::cout << std::endl << "Distribution doesn't have a clear distribution chunks are: " <<std::endl
+		std::cout << std::endl << "Data don't have a clear distribution, chunks are: " <<std::endl
 			<< 100 * normal_c / total << "% normal "<< std::endl << 100 * poisson_c / total << "% poisson" << std::endl
 			<< 100 * exponential_c / total << "% exponential " << std::endl << 100 * uniform_c / total << "% uniform " << std::endl
 			<< 100 * unknown_c / total << "% unknown" << std::endl;
