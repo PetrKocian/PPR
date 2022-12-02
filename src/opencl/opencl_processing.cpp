@@ -10,7 +10,7 @@
 
 
 //local defines
-#define NUMBER_OF_ELEMENTS_CL NUMBER_OF_DOUBLES_CL
+#define NUMBER_OF_ELEMENTS_CL NUMBER_OF_DOUBLES
 
 #define DOUBLES_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_ELEMENTS_CL)
 
@@ -31,10 +31,8 @@ void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::a
 
 	//builds stats kernel for target device
 	prepare_opencl_device(device, dev);
+
 	//keep computing until while there is data in opencl buffer
-
-	std::cout << "-------------------------------------------------------------------------"<< std::endl;
-
 	while (get_data)
 	{
 		cl_buffer_mutex.lock();
@@ -60,7 +58,6 @@ void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::a
 				get_data = false;
 			}
 			cl_buffer_mutex.unlock();
-			//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
 }

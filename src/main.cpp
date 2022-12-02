@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include "opencl/opencl_utils.h"
-#include "naive/naive.h"
 #include "utils/watchdog.h"
 #include "utils/arg_parser.h"
 #include "utils/my_timer.h"
@@ -39,52 +38,35 @@ int main(int argc, char* argv[]) {
 
 	if (mode == sequential)
 	{
-		std::vector<std::thread> reader_threads;
-		std::vector<std::thread> cpu_threads;
-
-		//start reader thread
-		for (int i = 0; i < NUMBER_OF_READERS; i++)
-		{
-			reader_threads.push_back(std::thread(read_file, "../../ppr_data/" + filename, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished), mode, i));
-		}
-		for (int i = 0; i < NUMBER_OF_CPU_T; i++)
-		{
-			//cpu_threads.push_back(std::thread(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution)));
-		}
-		/*
-		std::thread cpu_t(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
-		std::thread cpu_t1(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
-		std::thread cpu_t2(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
-		std::thread cpu_t3(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
-
-		cpu_t.join();		
-		cpu_t1.join();
-		cpu_t2.join();
-		cpu_t3.join();*/
-		/*for (auto& cpu_t : cpu_threads)
-		{
-			cpu_t.join();
-		} */
-		for (auto& reader : reader_threads)
-		{
-			reader.join();
-		}
-		t.end();
-		t.print();
-		/*std::thread reader(read_file, "../../ppr_data/" + filename, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished), mode,1);
-		std::thread cpu_t(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution));
-		cpu_t.join();
-		reader.join();*/
-
-	}
-	else if (mode == sequential)
-	{
+		//start sequential computation
 		result_cpu = read_and_analyze_file_v("../../ppr_data/" + filename, distribution, dog);
 	}
 	else if (mode == smp)
 	{
-		//start smp computation
-		result_cpu = tbb_read_and_analyze_file("../../ppr_data/" + filename, dog, distribution);
+		std::vector<std::thread> reader_threads;
+		std::vector<std::thread> cpu_threads;
+
+		//start reader threads
+		for (int i = 0; i < NUMBER_OF_READERS; i++)
+		{
+			reader_threads.push_back(std::thread(read_file, "../../ppr_data/" + filename, std::ref(opencl_buffer), std::ref(cpu_buffer), std::ref(finished), mode, i));
+		}
+
+		//start cpu manager threads
+		for (int i = 0; i < NUMBER_OF_CPU_T; i++)
+		{
+			cpu_threads.push_back(std::thread(cpu_manager, std::ref(cpu_buffer), std::ref(result_cpu), std::ref(finished), std::ref(dog), std::ref(distribution)));
+		}
+
+		//wait for all threads to finish
+		for (auto& cpu_t : cpu_threads)
+		{
+			cpu_t.join();
+		}
+		for (auto& reader : reader_threads)
+		{
+			reader.join();
+		}
 	}
 	else if(mode == opencl)
 	{
@@ -144,9 +126,9 @@ int main(int argc, char* argv[]) {
 		}
 
 		//wait for all threads to finish before finishing computation
-		for (auto& thread : open_cl_threads)
+		for (auto& cl_thread : open_cl_threads)
 		{
-			thread.join();
+			cl_thread.join();
 		}
 		for (auto& cpu_t : cpu_threads)
 		{

@@ -8,7 +8,7 @@
 
 void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, std::string &filename, mode &mode_ret)
 {
-	//DEBUG
+	//DEBUG - allows to start program from msvc and use profiling tools
 	if (argc == 1)
 	{
 		std::cout << "Input filename (mode = all):" << std::endl;
@@ -34,7 +34,6 @@ void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, s
 	std::vector<cl::Device> devices_temp;
 	std::stringstream args_ss;
 	std::string arguments;
-
 
 	//check if mode is all or SMP
 	if (mode_in == "all" && argc == 3)

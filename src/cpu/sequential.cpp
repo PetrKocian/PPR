@@ -105,7 +105,7 @@ Stats read_and_analyze_file_v(std::string filename, Distribution& distribution, 
 {
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
-	size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES_CPU;
+	size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 	std::vector<char> buffer(buffer_size);
 	double combined_mean = 0;
 	double only_int = 0;

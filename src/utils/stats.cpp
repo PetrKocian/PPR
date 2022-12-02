@@ -303,14 +303,17 @@ int Stats::get_distribution_s()
 	double min_dev_from_distribution = 100;
 	for (int i = 0; i < 4; i++)
 	{
+		//do not return poisson if data contains non integers
 		if (!this->only_integers() && i == 1)
 		{
 			continue;
 		}
+		//do not return normal if data contains only ints and mean > 20 => poission with m>20 is very similar to normal
 		if (this->mean() > 20 && this->only_integers() && i == 0)
 		{
 			continue;
 		}
+		//get distribution with smallest deviation from kurtosis
 		if (std::abs(kurtosis - get_distr_par(i)) < min_dev_from_distribution)
 		{
 			min_dev_from_distribution = std::abs(kurtosis - get_distr_par(i));

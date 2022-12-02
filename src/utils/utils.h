@@ -6,9 +6,8 @@
 #include <atomic>
 
 //number of elements passed to managing threads for cpu/opencl
-#define NUMBER_OF_DOUBLES_CPU 1000000
-#define NUMBER_OF_DOUBLES_CL 1000000
-#define NUMBER_OF_READERS 4
+#define NUMBER_OF_DOUBLES 250000
+#define NUMBER_OF_READERS 8
 #define NUMBER_OF_CPU_T 4
 
 
