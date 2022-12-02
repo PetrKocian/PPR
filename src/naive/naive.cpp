@@ -4,21 +4,19 @@
 #include <array>
 #include <filesystem>
 #include <immintrin.h>
-#include <oneapi/tbb/flow_graph.h>
+//#include <oneapi/tbb/flow_graph.h>
 #include "naive.h"
+#include "../utils/utils.h"
 #include "../utils/stats.h"
 #include "../utils/my_timer.h"
 #include "../opencl/opencl_processing.h"
 
-#define NUMBER_OF_DOUBLES 10000
+#define NUMBER_OF_DOUBLES NUMBER_OF_DOUBLES_CPU
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
 
 //Naive implementation, used for testing
-void read_and_analyze_file_naive(std::string filename)
+Stats read_and_analyze_file_naive(std::string filename)
 {
-	t.clear();
-	t.start();
-
 	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
 	bool eof = false;
 	size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES;
@@ -56,19 +54,11 @@ void read_and_analyze_file_naive(std::string filename)
 			}
 		}
 	}
-
-	t.end();
-
-	std::cout 
-		<< "stats mean " << stats.mean() <<  " n " << stats.get_n() <<" kurtosis " << stats.kurtosis() 
-		<< " only ints " << stats.get_only_ints() << " " << stats.only_integers()
-		<< " time: " << t.get_time() << "us time " << t.get_time_ms() << "ms" << std::endl;
-
-	t.clear();
+	return stats;
 }
 
 //Naive implementation, used for testing
-Stats compute_stats_naive(std::vector<char> buffer)
+Stats compute_stats_naive2(std::vector<char> buffer)
 {
 	Stats stats;
 

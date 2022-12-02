@@ -1,7 +1,7 @@
 #include "watchdog.h"
 #include <iostream>
 
-Watchdog::Watchdog(std::chrono::milliseconds timeout) : timeout(timeout) {}
+Watchdog::Watchdog(std::chrono::milliseconds timeout, Distribution &distr) : timeout(timeout), final_distr(distr) {}
 
 void Watchdog::start()
 {
@@ -12,7 +12,8 @@ void Watchdog::start()
 void Watchdog::stop()
 {
 	guarding = false;
-	watchdog_thread.join();
+	std::cout << "Count: " << processed_items << std::endl;
+	watchdog_thread.detach();
 }
 
 void Watchdog::kick(size_t count)
@@ -35,10 +36,13 @@ void Watchdog::run()
 		{
 			timeout_count++;
 			std::cout << "Program inactive for " << (timeout_count*timeout.count()/1000) << " seconds" << std::endl;
-			//Terminate whole program after 30 seconds
+			//Terminate whole program after timeout*6 seconds
 			if (timeout_count > 5)
 			{
-				std::cout << "Terminating" << std::endl;
+				std::cout << "Terminating, current results are: " << std::endl 
+				<< "Processed doubles: " << processed_items;
+				final_distr.make_distribution_decision();
+				final_distr.print_distribution_decision();
 				std::terminate();
 			}
 		}

@@ -107,7 +107,7 @@ void Distribution::print_distribution_decision()
 			std::cout << std::endl << "Data seem to be normally distributed, " << 100 * normal_c / total << "% are normal chunks" << std::endl;
 			break;
 		case poisson:
-			std::cout << std::endl << "Data seem to be poisson distributed, " << 100 * poisson_c / total << "% are poission chunks" << std::endl;
+			std::cout << std::endl << "Data seem to be poisson distributed, " << 100 * poisson_c / total << "% are poisson chunks" << std::endl;
 			break;
 		case exponential:
 			std::cout << std::endl << "Data seem to be exponentially distributed, " << 100 * exponential_c / total << "% are exponential chunks" << std::endl;

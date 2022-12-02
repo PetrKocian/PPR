@@ -14,6 +14,7 @@ public:
 	void clear();
 	int get_time() const;
 	int get_time_ms() const;
+	void print() const;
 };
 
 //global timer instance

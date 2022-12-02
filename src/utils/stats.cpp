@@ -303,17 +303,19 @@ int Stats::get_distribution_s()
 	double min_dev_from_distribution = 100;
 	for (int i = 0; i < 4; i++)
 	{
+		if (!this->only_integers() && i == 1)
+		{
+			continue;
+		}
+		if (this->mean() > 20 && this->only_integers() && i == 0)
+		{
+			continue;
+		}
 		if (std::abs(kurtosis - get_distr_par(i)) < min_dev_from_distribution)
 		{
 			min_dev_from_distribution = std::abs(kurtosis - get_distr_par(i));
 			index = i;
 		}
-	}
-
-	if ((min_dev_from_distribution > 0.5 && index != static_cast<int>(exponential)) ||
-		(min_dev_from_distribution > 2 && index == static_cast<int>(exponential)))
-	{
-		index = 4;
 	}
 
 	switch (static_cast<distr_type>(index))

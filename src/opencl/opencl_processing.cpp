@@ -14,14 +14,14 @@
 
 #define DOUBLES_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_ELEMENTS_CL)
 
-#define WORKITEMS (NUMBER_OF_ELEMENTS_CL/100)
+#define WORKITEMS (NUMBER_OF_ELEMENTS_CL/1000)
 
 #define NUMBER_OF_RESULTS (WORKITEMS * 6)
 
 #define RESULT_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_RESULTS)
 
 //function passed executed by an opencl manager thread
-void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::atomic<bool>& finished, Watchdog& dog, cl::Device& device, Distribution& distribution)
+void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::atomic<int>& finished, Watchdog& dog, cl::Device& device, Distribution& distribution)
 {
 	//local variables
 	Device_opencl_struct dev;
@@ -31,8 +31,10 @@ void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::a
 
 	//builds stats kernel for target device
 	prepare_opencl_device(device, dev);
-
 	//keep computing until while there is data in opencl buffer
+
+	std::cout << "-------------------------------------------------------------------------"<< std::endl;
+
 	while (get_data)
 	{
 		cl_buffer_mutex.lock();
@@ -53,11 +55,12 @@ void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::a
 		else
 		{
 			//if finished, release mutex and break loop
-			if (finished)
+			if (finished == 0)
 			{
 				get_data = false;
 			}
 			cl_buffer_mutex.unlock();
+			//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
 }
@@ -94,7 +97,7 @@ void prepare_opencl_device(cl::Device device, Device_opencl_struct &device_struc
 	device_struct.kernel.setArg(1, device_struct.buffer_result);
 }
 
-Stats compute_stats_opencl(Device_opencl_struct& dev, std::vector<char> buffer)
+Stats compute_stats_opencl(Device_opencl_struct& dev, const std::vector<char> &buffer)
 {
 	//local variables
 	std::array<double, NUMBER_OF_RESULTS> result_arr;
@@ -104,8 +107,13 @@ Stats compute_stats_opencl(Device_opencl_struct& dev, std::vector<char> buffer)
 	//execute kernel with input buffer and load data into result array
 	dev.queue.enqueueWriteBuffer(dev.buffer_doubles, CL_TRUE, 0, DOUBLES_BUFFER_SIZE_CL, buffer.data());
 	cl_int result = dev.queue.enqueueNDRangeKernel(dev.kernel, cl::NullRange, cl::NDRange(WORKITEMS), cl::NullRange);
+
 	dev.queue.enqueueReadBuffer(dev.buffer_result, CL_TRUE, 0, RESULT_BUFFER_SIZE_CL, result_arr.data());
 	dev.queue.finish();
+	if (result != CL_SUCCESS)
+	{
+		std::cout << "Kernel error: " << result << std::endl;
+	}
 
 	//initialize final stats
 	sp.n = result_arr[0];

@@ -7,7 +7,7 @@
 class Watchdog
 {
 private:
-	Distribution final_distr;
+	Distribution &final_distr;
 	std::atomic<size_t> processed_items = 0;
 	uint16_t timeout_count = 0;
 	std::thread watchdog_thread;
@@ -15,7 +15,7 @@ private:
 	void run();
 	bool guarding = false;
 public:
-	Watchdog(std::chrono::milliseconds timeout);
+	Watchdog(std::chrono::milliseconds timeout, Distribution &distr);
 	void kick(size_t count);
 	void start();
 	void stop();

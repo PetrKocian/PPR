@@ -8,6 +8,16 @@
 
 void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, std::string &filename, mode &mode_ret)
 {
+	//DEBUG
+	if (argc == 1)
+	{
+		std::cout << "Input filename (mode = all):" << std::endl;
+		std::getline(std::cin, filename);
+		devices = get_all_opencl_devices();
+		mode_ret = debug;
+		return;
+	}
+
 	//program name + filename + mode = 3
 	if (argc < 3)
 	{
@@ -31,6 +41,10 @@ void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, s
 	{
 		devices = get_all_opencl_devices();
 		mode_ret = all;
+	}
+	else if (mode_in == "seq" && argc == 3)
+	{
+		mode_ret = sequential;
 	}
 	else if (mode_in == "SMP" && argc == 3)
 	{
@@ -59,7 +73,6 @@ void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, s
 				//device found in argument string, add to device return vector and remove it from argument string
 				devices.push_back(dev);
 				arguments = arguments.substr(0, pos) + arguments.substr(pos+dev_name.size());
-				std::cout << arguments << std::endl;
 			}
 		}
 
@@ -76,7 +89,6 @@ void parse_arguments(int argc, char* argv[], std::vector<cl::Device> &devices, s
 			}
 			exit(1);
 		}
-		std::cout << "Selected devices mode" << std::endl;
 		mode_ret = opencl;
 	}
 }

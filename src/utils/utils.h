@@ -6,8 +6,11 @@
 #include <atomic>
 
 //number of elements passed to managing threads for cpu/opencl
-#define NUMBER_OF_DOUBLES_CPU 10000
+#define NUMBER_OF_DOUBLES_CPU 1000000
 #define NUMBER_OF_DOUBLES_CL 1000000
+#define NUMBER_OF_READERS 4
+#define NUMBER_OF_CPU_T 4
+
 
 extern std::mutex cpu_buffer_mutex;
 extern std::mutex cl_buffer_mutex;
@@ -17,7 +20,9 @@ enum mode
 {
 	all = 0,
 	smp = 1,
-	opencl = 2
+	opencl = 2,
+	sequential = 3,
+	debug = 4
 };
 
 enum distr_type

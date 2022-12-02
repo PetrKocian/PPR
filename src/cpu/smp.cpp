@@ -12,6 +12,81 @@
 
 static const size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES_CPU;
 
+Stats compute_stats_tbb(std::vector<char> buffer)
+{
+	Stats stats;
+	tbb::flow::graph g;
+	Stats final_stats;
+
+	std::cout << "starting" << std::endl;
+
+	//reader input node
+	tbb::flow::input_node<std::vector<char>> input_node(g, [&](tbb::flow_control & fc) {
+		for (int i = 0; i < 10; i++)
+		{
+			if (i == 9)
+			{
+				fc.stop();
+				std::cout << "INput stop" << std::endl;
+			}
+			return std::vector<char>(buffer.begin(), buffer.begin() + NUMBER_OF_DOUBLES_CPU / 10);
+		}
+		});
+	//push function node
+	tbb::flow::function_node<std::vector<char>, Stats> push_node(g, 1, [&](std::vector<char> data) {
+		std::cout << "push start" << std::endl;
+
+		Stats stats;
+		const double* double_values = (double*)data.data();
+
+		if (data.size() == buffer_size)
+		{
+			const size_t end = data.size() / sizeof(double);
+			for (int i = 0; i < end; i += 4)
+			{
+				__m256d vec = _mm256_load_pd(double_values + i);
+				stats.push_v(vec);
+			}
+			//add AVX2 vector doubles together to finalize stats
+			stats.finalize_stats();
+			return stats;
+		}
+		else
+			//end of file -> might not be divisible by 4, use push instead of push_v
+		{
+			const size_t end = data.size() / sizeof(double);
+			for (int i = 0; i < end; i++)
+			{
+				double number = double_values[i];
+				stats.push(number);
+			}
+			std::cout << "push stop" << std::endl;
+
+			stats.finalize_stats();
+			return stats;
+		}
+		});
+
+	//merger function node, 1 instance since it's modifying global final_stats
+	tbb::flow::function_node<Stats, Stats> combine_node(g, 1, [&](Stats stats) {
+		std::cout << "final stop" << std::endl;
+
+		final_stats.add_stats(stats);
+		return final_stats;
+		});
+	//connect nodes
+	tbb::flow::make_edge(input_node, push_node);
+	tbb::flow::make_edge(push_node, combine_node);
+
+	//activate and wait for graph to finish, return result
+	input_node.activate();
+	g.wait_for_all();
+	final_stats.finalize_stats();
+	std::cout << "ending" << std::endl;
+
+	return final_stats;
+}
+
 Stats tbb_read_and_analyze_file(std::string filename, Watchdog& dog, Distribution& distribution)
 {
 	tbb::flow::graph g;

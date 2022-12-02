@@ -10,7 +10,7 @@
 #include "../utils/utils.h"
 
 //function passed to a cpu manager thread
-void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std::atomic<bool>& finished, Watchdog& dog, Distribution &distribution)
+void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std::atomic<int>& finished, Watchdog& dog, Distribution &distribution)
 {
 	//local variables
 	std::vector<char> buffer;
@@ -27,8 +27,6 @@ void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std:
 			buffer = cpu_buffer.back();
 			cpu_buffer.pop_back();
 			cpu_buffer_mutex.unlock();
-			//cast char buffer to doubles
-			double* double_values = (double*)buffer.data();
 			//compute and update result stats
 			stats = compute_stats_v(buffer);
 			result.add_stats(stats);
@@ -39,11 +37,12 @@ void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std:
 		else
 		{
 			//break loop, release mutex and finish thread
-			if (finished)
+			if (finished == 0)
 			{
 				get_data = false;
 			}
 			cpu_buffer_mutex.unlock();
+			//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
 }
@@ -97,6 +96,62 @@ Stats compute_stats_v(std::vector<char> buffer)
 	}
 
 	//finalize and return stats
+	stats.finalize_stats();
+	return stats;
+}
+
+
+Stats read_and_analyze_file_v(std::string filename, Distribution& distribution, Watchdog &dog)
+{
+	std::ifstream input_file(filename, std::ifstream::in | std::ifstream::binary);
+	bool eof = false;
+	size_t buffer_size = sizeof(double) * NUMBER_OF_DOUBLES_CPU;
+	std::vector<char> buffer(buffer_size);
+	double combined_mean = 0;
+	double only_int = 0;
+
+	Stats stats;
+	Stats stats_non_v;
+	Stats stats_p;
+
+	//check if file opened
+	if (!input_file)
+	{
+		std::wcout << "File failed to open" << std::endl;
+		eof = true;
+	}
+
+	const uintmax_t filesize = std::filesystem::file_size(filename);
+
+	for (int i = 0; i < filesize / buffer_size; i++)
+	{
+		input_file.read(buffer.data(), buffer_size);
+		const size_t end = input_file.gcount() / sizeof(double);
+
+		stats_p = compute_stats_v(buffer);
+		stats.add_stats(stats_p);
+		distribution.push_distribution(static_cast<distr_type>(stats.get_distribution_s()));
+		dog.kick(stats_p.get_n());
+	}
+
+	input_file.read(buffer.data(), buffer_size);
+
+	if (input_file.gcount() != 0)
+	{
+		double* double_values = (double*)buffer.data();
+
+		for (int i = 0; i < input_file.gcount() / sizeof(double); i++)
+		{
+			double number = double_values[i];
+
+			auto double_class = std::fpclassify(number);
+			if (double_class == FP_NORMAL || FP_ZERO)
+			{
+				stats.push(number);
+			}
+		}
+	}
+
 	stats.finalize_stats();
 	return stats;
 }

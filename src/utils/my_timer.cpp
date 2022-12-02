@@ -1,4 +1,5 @@
 #include "my_timer.h"
+#include <iostream>
 
 void Timer::clear()
 {
@@ -25,4 +26,10 @@ int Timer::get_time() const
 int Timer::get_time_ms() const
 {
 	return time / 1000;
+}
+
+void Timer::print() const
+{
+	std::cout	<< "Time: " << this->get_time() << "us" << std::endl
+				<< "      " << this->get_time_ms() << "ms" << std::endl;
 }
