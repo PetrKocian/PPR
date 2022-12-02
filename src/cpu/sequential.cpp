@@ -9,6 +9,8 @@
 #include "../utils/my_timer.h"
 #include "../utils/utils.h"
 
+std::mutex cpu_stats_mutex;
+
 //function passed to a cpu manager thread
 void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std::atomic<int>& finished, Watchdog& dog, Distribution &distribution)
 {
@@ -29,8 +31,10 @@ void cpu_manager(std::vector<std::vector<char>>& cpu_buffer, Stats& result, std:
 			cpu_buffer_mutex.unlock();
 			//compute and update result stats
 			stats = compute_stats_v(buffer);
+			cpu_stats_mutex.lock();
 			result.add_stats(stats);
 			distribution.push_distribution(static_cast<distr_type>(stats.get_distribution_s()));
+			cpu_stats_mutex.unlock();
 			//kick watchdog
 			dog.kick(stats.get_n());
 		}

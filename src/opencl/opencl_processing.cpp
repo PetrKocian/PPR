@@ -20,6 +20,8 @@
 
 #define RESULT_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_RESULTS)
 
+std::mutex cl_stats_mutex;
+
 //function passed executed by an opencl manager thread
 void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::atomic<int>& finished, Watchdog& dog, cl::Device& device, Distribution& distribution)
 {
@@ -45,8 +47,10 @@ void cl_manager(std::vector<std::vector<char>>& cl_buffer, Stats& result, std::a
 
 			//compute stats for chunk and add to final result
 			stats = compute_stats_opencl(dev, buffer);
+			cl_stats_mutex.lock();
 			result.add_stats(stats);
 			distribution.push_distribution(static_cast<distr_type>(stats.get_distribution_s()));
+			cl_stats_mutex.unlock();
 			//kick watchdog
 			dog.kick(stats.get_n());
 		}
