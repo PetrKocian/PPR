@@ -1,5 +1,5 @@
-//equivalent of Stats::push()
-
+//implementation based on: https://opensource.apple.com/source/Libm/Libm-315/Source/ARM/fpclassify.c.auto.html
+//returns 1 for NORMAL and ZERO values, otherwise 0
 int fpclassify(double x)
 {
 	unsigned long mask1 = 0x7fffffffffffffff;
@@ -24,7 +24,7 @@ int fpclassify(double x)
 	return 1;
 }
 
-
+//equivalent of Stats::push()
 inline void push_cl(double *m, size_t *n, double *only_ints, double x)
 {
 	double delta, delta_n, delta_n2, term1;
@@ -54,8 +54,8 @@ __kernel void compute_stats(__global const double* numbers, __global double* res
 	size_t id = get_global_id(0);
 
 	//compute stats
-	for (size_t i = 0; i < 1000; i += 1) {
-		push_cl(m, &n, &only_ints, numbers[id*1000 + i]);
+	for (size_t i = 0; i < LOOP_SIZE; i += 1) {
+		push_cl(m, &n, &only_ints, numbers[id*LOOP_SIZE + i]);
 	}
 
 	//add results to result array

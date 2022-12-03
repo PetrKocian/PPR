@@ -10,15 +10,18 @@
 
 
 //local defines
+#define LOOP_SIZE 1000
+
 #define NUMBER_OF_ELEMENTS_CL NUMBER_OF_DOUBLES
 
 #define DOUBLES_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_ELEMENTS_CL)
 
-#define WORKITEMS (NUMBER_OF_ELEMENTS_CL/1000)
+#define WORKITEMS (NUMBER_OF_ELEMENTS_CL/LOOP_SIZE)
 
 #define NUMBER_OF_RESULTS (WORKITEMS * 6)
 
 #define RESULT_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_RESULTS)
+
 
 std::mutex cl_stats_mutex;
 
@@ -78,8 +81,11 @@ void prepare_opencl_device(cl::Device device, Device_opencl_struct &device_struc
 	std::string cl_code = load_kernel_code("../src/opencl/stats_kernel.cl");
 	sources.push_back({ cl_code.c_str(), cl_code.length() });
 
+	//argument for loop inside opencl kernel
+	std::string loop_size = "-DLOOP_SIZE=" + std::to_string(LOOP_SIZE);
+
 	device_struct.program = cl::Program(device_struct.context, sources);
-	if (device_struct.program.build({ device }) != CL_SUCCESS) {
+	if (device_struct.program.build({ device }, loop_size.c_str()) != CL_SUCCESS) {
 		std::cout << "Error building for device " << device.getInfo<CL_DEVICE_NAME>() << std::endl << device_struct.program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
 		exit(1);
 	}
