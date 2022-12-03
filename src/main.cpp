@@ -150,6 +150,9 @@ int main(int argc, char* argv[]) {
 	distribution.make_distribution_decision();
 	distribution.print_distribution_decision();
 
+	std::cout << "Kurtosis of data is: " << result_cpu.kurtosis() << std::endl
+		<< "and mean: " << result_cpu.mean() << std::endl;
+
 	t.end();
 	t.print();
 

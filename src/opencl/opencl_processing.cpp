@@ -12,15 +12,19 @@
 //local defines
 #define LOOP_SIZE 1000
 
+#define WORK_GROUP_SIZE 64
+
 #define NUMBER_OF_ELEMENTS_CL NUMBER_OF_DOUBLES
 
 #define DOUBLES_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_ELEMENTS_CL)
 
 #define WORKITEMS (NUMBER_OF_ELEMENTS_CL/LOOP_SIZE)
 
-#define NUMBER_OF_RESULTS (WORKITEMS * 6)
+#define PARTIAL_NUMBER_OF_RESULTS (WORKITEMS * 6)
 
-#define RESULT_BUFFER_SIZE_CL (sizeof(double)*NUMBER_OF_RESULTS)
+#define PARTIAL_RESULT_BUFFER_SIZE_CL (sizeof(double)*PARTIAL_NUMBER_OF_RESULTS)
+
+#define NUMBER_OF_RESULTS (PARTIAL_NUMBER_OF_RESULTS / WORK_GROUP_SIZE)
 
 
 std::mutex cl_stats_mutex;
@@ -92,7 +96,7 @@ void prepare_opencl_device(cl::Device device, Device_opencl_struct &device_struc
 
 	//init buffers
 	device_struct.buffer_doubles = cl::Buffer(device_struct.context, CL_MEM_READ_WRITE, DOUBLES_BUFFER_SIZE_CL);
-	device_struct.buffer_result = cl::Buffer(device_struct.context, CL_MEM_READ_WRITE, RESULT_BUFFER_SIZE_CL);
+	device_struct.buffer_result = cl::Buffer(device_struct.context, CL_MEM_READ_WRITE, PARTIAL_RESULT_BUFFER_SIZE_CL);
 
 	//init queue and kernel
 	device_struct.queue = cl::CommandQueue(device_struct.context, device_struct.device);
@@ -101,7 +105,9 @@ void prepare_opencl_device(cl::Device device, Device_opencl_struct &device_struc
 
 	//set buffers as arguments to kernel
 	device_struct.kernel.setArg(0, device_struct.buffer_doubles);
-	device_struct.kernel.setArg(1, device_struct.buffer_result);
+	device_struct.kernel.setArg(1, PARTIAL_RESULT_BUFFER_SIZE_CL, NULL);
+	device_struct.kernel.setArg(2, device_struct.buffer_result);
+
 }
 
 Stats compute_stats_opencl(Device_opencl_struct& dev, const std::vector<char> &buffer)
@@ -113,9 +119,9 @@ Stats compute_stats_opencl(Device_opencl_struct& dev, const std::vector<char> &b
 
 	//execute kernel with input buffer and load data into result array
 	dev.queue.enqueueWriteBuffer(dev.buffer_doubles, CL_TRUE, 0, DOUBLES_BUFFER_SIZE_CL, buffer.data());
-	cl_int result = dev.queue.enqueueNDRangeKernel(dev.kernel, cl::NullRange, cl::NDRange(WORKITEMS), cl::NullRange);
+	cl_int result = dev.queue.enqueueNDRangeKernel(dev.kernel, cl::NullRange, cl::NDRange(WORKITEMS), cl::NDRange(WORK_GROUP_SIZE));
 
-	dev.queue.enqueueReadBuffer(dev.buffer_result, CL_TRUE, 0, RESULT_BUFFER_SIZE_CL, result_arr.data());
+	dev.queue.enqueueReadBuffer(dev.buffer_result, CL_TRUE, 0, PARTIAL_RESULT_BUFFER_SIZE_CL/WORK_GROUP_SIZE, result_arr.data());
 	dev.queue.finish();
 	if (result != CL_SUCCESS)
 	{
